@@ -23,7 +23,7 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 	let udf4 = request.udf4 || "udf-44";
 
 	let transactionId = request.transactionId || "txn-1001";
-	let amount = request.amount || "181.00";
+	let amount = request.amount || "18100.00";
 
 	var requestNdpsPayment =
 	{
