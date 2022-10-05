@@ -13,16 +13,21 @@ const fetchUsers = asyncHandler(async (req, res) =>
 
 const createUser = asyncHandler(async (req, res) =>
 {
-	const user = await User.create(
-		{
-			name: req.body.name,
-			membershipNo: req.body.membershipNo,
-			pendingAmount: req.body.pendingAmount
-		});
+	const user = await User.create(req.body);
 
-	res.status(200).json(
+	res.status(201).json(
 		{
 			user
+		});
+});
+
+const createUsers = asyncHandler(async (req, res) =>
+{
+	const users = await User.insertMany(req.body);
+
+	res.status(201).json(
+		{
+			users
 		});
 });
 
@@ -51,13 +56,25 @@ const deleteUser = asyncHandler(async (req, res) =>
 	}
 
 	await user.remove();
+
 	res.status(200).json(
 		{
 			id: req.params.id
 		});
 });
 
+const fetchPendingAmount = asyncHandler(async (req, res) =>
+{
+	const user = await User.find({ membershipNo: req.params.membershipNo });
+
+	res.status(200).json(
+		{
+			user
+		}
+	);
+});
+
 module.exports =
 {
-	fetchUsers, createUser, updateUser, deleteUser
+	fetchUsers, createUser, createUsers, fetchPendingAmount, updateUser, deleteUser
 };

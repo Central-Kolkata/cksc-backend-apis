@@ -15,6 +15,14 @@ const userSchema = mongoose.Schema(
 		pendingAmount:
 		{
 			type: Number
+		},
+		mobile:
+		{
+			type: String
+		},
+		email:
+		{
+			type: String
 		}
 	},
 	{
