@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/user-model");
 
-const getUsers = asyncHandler(async (req, res) =>
+const fetchUsers = asyncHandler(async (req, res) =>
 {
 	const users = await User.find();
 
@@ -59,5 +59,5 @@ const deleteUser = asyncHandler(async (req, res) =>
 
 module.exports =
 {
-	getUsers, createUser, updateUser, deleteUser
+	fetchUsers, createUser, updateUser, deleteUser
 };
