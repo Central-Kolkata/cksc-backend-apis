@@ -7,14 +7,6 @@ connectMongoDB();
 const port = process.env.PORT || 5000;
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-app.use(`/api/users`, require("./routes/user-routes"));
-app.use(`/api/atom`, require("./routes/atom-routes"));
-
-app.use(errorHandler);
-
 app.use((req, res, next) =>
 {
 	res.setHeader("Access-Control-Allow-Origin", "*");
@@ -26,7 +18,17 @@ app.use((req, res, next) =>
 		"Access-Control-Allow-Headers",
 		"Content-Type, Authorization, Accept-Language",
 	);
+
+	next();
 });
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use(`/api/users`, require("./routes/user-routes"));
+app.use(`/api/atom`, require("./routes/atom-routes"));
+
+app.use(errorHandler);
 
 app.listen(port, () =>
 {
