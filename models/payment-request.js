@@ -30,7 +30,11 @@ const paymentRequestSchema = mongoose.Schema(
 		{
 			type: String
 		},
-		udf5:
+		udf11:
+		{
+			type: String
+		},
+		udf12:
 		{
 			type: String
 		}

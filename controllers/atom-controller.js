@@ -3,6 +3,7 @@ const ndps = require('ndps-nodejs');
 const moment = require("moment");
 const { v4: uuidv4 } = require("uuid");
 const PaymentRequest = require("../models/payment-request");
+const PaymentResponse = require("../models/payment-response");
 
 const createPaymentRequest = asyncHandler(async (req, res) =>
 {
@@ -38,7 +39,8 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 			"udf1": udf1,
 			"udf2": udf2,
 			"udf3": udf3,
-			"udf5": udf5
+			"udf11": userId,
+			"udf12": transactionId
 		});
 
 	var requestNdpsPayment =
@@ -53,10 +55,11 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 		clientcode: clientCode, // base64(CKSC)
 		date: moment().format("DD/MM/yyyy HH:m:ss"),
 		custacc: custAcc,
-		udf1: udf1,
-		udf2: udf2,
-		udf3: udf3,
-		udf5: udf5,
+		udf1: udf1, // Name
+		udf2: udf2, // Email
+		udf3: udf3, // Mobile
+		udf11: userId, // userId
+		udf12: transactionId, // transactionId
 		ru: ru,
 		payUrl: payURL,
 		encHashKey: hashEncryptionKey,
@@ -74,33 +77,57 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 		decResponseKey: process.env.RESPONSE_ENCRYPTION_KEY
 	};
 
-	console.log("responseNdpsPayment", responseNdpsPayment);
-
 	var response = ndps.ndpsresponse(responseNdpsPayment);
 	var signature = ndps.verifysignature(response, process.env.HASH_RESPONSE_ENCRYPTION_KEY);
 
 	console.log("Final response", response);
 
+	var transactionMessage = "Transaction Failed due to signature mismatch";
+
 	if (signature === response["signature"])
 	{
 		if (response["f_code"] == "Ok")
 		{
-			console.log("Transaction successful");
-			res.json("Transaction successful");
+			transactionMessage = "Transaction successful";
 		}
 		else if (response["f_code"] == "C")
 		{
-			res.json("Transaction Cancelled");
+			transactionMessage = "Transaction Cancelled";
 		}
 		else
 		{
-			res.json("Transaction Failed");
+			transactionMessage = "Transaction Failed";
 		}
 	}
-	else
-	{
-		res.json("Transaction Failed");
-	}
+
+	await PaymentRequest.create(
+		{
+			"userId": udf11,
+			"transactionId": udf12,
+			"transactionTimestamp": response.date,
+			"cardNumber": response.CardNumber,
+			"surcharge": response.surcharge,
+			"scheme": response.scheme,
+			"signature": response.signature,
+			"amount": response.amt,
+			"merchantTransaction": response.mer_txn,
+			"fCode": response.f_code,
+			"bankTransactionReference": response.bank_txn,
+			"ipgTransactionId": response.ipg_txn_id,
+			"bankName": response.bank_name,
+			"mmpTransaction": response.mmp_txn,
+			"discriminator": response.discriminator,
+			"authCode": response.auth_code,
+			"description": response.desc,
+			"transactionMessage": transactionMessage,
+			"udf1": udf1,
+			"udf2": udf2,
+			"udf3": udf3,
+			"udf11": udf11,
+			"udf12": udf12
+		});
+
+	res.json(transactionMessage);
 });
 
 module.exports =
