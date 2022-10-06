@@ -102,8 +102,8 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 
 	await PaymentRequest.create(
 		{
-			"userId": udf11,
-			"transactionId": udf12,
+			"userId": response.udf11,
+			"transactionId": response.udf12,
 			"transactionTimestamp": response.date,
 			"cardNumber": response.CardNumber,
 			"surcharge": response.surcharge,
@@ -120,11 +120,11 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 			"authCode": response.auth_code,
 			"description": response.desc,
 			"transactionMessage": transactionMessage,
-			"udf1": udf1,
-			"udf2": udf2,
-			"udf3": udf3,
-			"udf11": udf11,
-			"udf12": udf12
+			"udf1": response.udf1,
+			"udf2": response.udf2,
+			"udf3": response.udf3,
+			"udf11": response.udf11,
+			"udf12": response.udf12
 		});
 
 	res.json(transactionMessage);
