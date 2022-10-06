@@ -100,7 +100,7 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 		}
 	}
 
-	await PaymentRequest.create(
+	await PaymentResponse.create(
 		{
 			"userId": response.udf11,
 			"transactionId": response.udf12,
