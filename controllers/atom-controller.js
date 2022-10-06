@@ -1,10 +1,14 @@
 const asyncHandler = require("express-async-handler");
 const ndps = require('ndps-nodejs');
 const moment = require("moment");
+const { v4: uuidv4 } = require("uuid");
+const PaymentRequest = require("../models/payment-request");
 
 const createPaymentRequest = asyncHandler(async (req, res) =>
 {
 	var request = req.body;
+
+	let userId = request.userId;
 
 	let loginId = process.env.LOGIN_ID;
 	let password = process.env.PASSWORD;
@@ -20,10 +24,22 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 	let udf1 = request.udf1 || "udf-11";
 	let udf2 = request.udf2 || "udf-22";
 	let udf3 = request.udf3 || "udf-33";
-	let udf4 = request.udf4 || "udf-44";
+	let udf5 = request.udf5 || "udf-55";
 
-	let transactionId = request.transactionId || "txn-1001";
-	let amount = request.amount || "18100.00";
+	let amount = request.amount;
+	let transactionId = uuidv4();
+
+	await PaymentRequest.create(
+		{
+			"userId": userId,
+			"productId": productId,
+			"transactionId": transactionId,
+			"amount": amount,
+			"udf1": udf1,
+			"udf2": udf2,
+			"udf3": udf3,
+			"udf5": udf5
+		});
 
 	var requestNdpsPayment =
 	{
@@ -40,7 +56,7 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 		udf1: udf1,
 		udf2: udf2,
 		udf3: udf3,
-		udf4: udf4,
+		udf5: udf5,
 		ru: ru,
 		payUrl: payURL,
 		encHashKey: hashEncryptionKey,
