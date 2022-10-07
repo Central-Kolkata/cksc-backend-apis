@@ -66,6 +66,8 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 		encRequestKey: requestEncryptionKey
 	};
 
+	console.log("requestNdpsPayment is: ", requestNdpsPayment);
+
 	res.redirect(ndps.ndpsencrypt(requestNdpsPayment));
 });
 
