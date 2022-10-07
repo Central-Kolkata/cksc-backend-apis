@@ -22,10 +22,10 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 	let hashEncryptionKey = process.env.HASH_REQUEST_ENCRYPTION_KEY;
 	let requestEncryptionKey = process.env.REQUEST_ENCRYPTION_KEY;
 
-	let udf1 = request.udf1 || "udf-11";
-	let udf2 = request.udf2 || "udf-22";
-	let udf3 = request.udf3 || "udf-33";
-	let udf5 = request.udf5 || "udf-55";
+	let udf1 = request.udf1 || "udf-11"; // Name
+	let udf2 = request.udf2 || "udf-22"; // Email
+	let udf3 = request.udf3 || "udf-33"; // Mobile
+	let udf11 = request.udf11 || "udf-11"; // CKSC Registration Number
 
 	let amount = request.amount;
 	let transactionId = uuidv4();
@@ -39,7 +39,7 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 			"udf1": udf1,
 			"udf2": udf2,
 			"udf3": udf3,
-			"udf11": userId,
+			"udf11": udf11,
 			"udf12": transactionId
 		});
 
