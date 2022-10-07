@@ -49,7 +49,7 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 		password: password,
 		ttype: txnType,
 		productid: productId,
-		txnId: transactionId, // CKSC unique order id - for each txn
+		transactionsid: transactionId, // CKSC unique order id - for each txn
 		amount: amount,
 		txncurrency: "INR",
 		clientcode: clientCode, // base64(CKSC)
