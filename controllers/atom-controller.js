@@ -58,7 +58,7 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 		udf1: udf1, // Name
 		udf2: udf2, // Email
 		udf3: udf3, // Mobile
-		udf11: userId, // userId
+		udf11: udf11, // CKSC Registration Number
 		udf12: transactionId, // transactionId
 		ru: ru,
 		payUrl: payURL,
