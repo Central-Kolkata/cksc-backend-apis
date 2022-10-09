@@ -58,8 +58,6 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 		udf1: udf1, // Name
 		udf2: udf2, // Email
 		udf3: udf3, // Mobile
-		udf11: udf11, // CKSC Registration Number
-		udf12: transactionId, // transactionId
 		ru: ru,
 		payUrl: payURL,
 		encHashKey: hashEncryptionKey,
@@ -132,7 +130,73 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 	res.json(transactionMessage);
 });
 
+const verifyPayment = asyncHandler(async (req, res) =>
+{
+	var request = req.body;
+
+	let userId = request.userId;
+
+	let loginId = process.env.LOGIN_ID;
+	let password = process.env.PASSWORD;
+	let txnType = process.env.TXN_TYPE;
+	let productId = process.env.PRODUCT_ID;
+	let clientCode = process.env.CLIENT_CODE;
+	let custAcc = process.env.CUST_ACC;
+	let ru = process.env.RU;
+	let payURL = process.env.VERIFY_URL;
+	let hashEncryptionKey = process.env.HASH_REQUEST_ENCRYPTION_KEY;
+	let requestEncryptionKey = process.env.REQUEST_ENCRYPTION_KEY;
+
+	let udf1 = request.udf1 || "udf-11"; // Name
+	let udf2 = request.udf2 || "udf-22"; // Email
+	let udf3 = request.udf3 || "udf-33"; // Mobile
+	let udf11 = request.udf11 || "udf-11"; // CKSC Registration Number
+
+	let amount = request.amount;
+	let transactionId = uuidv4();
+
+	await PaymentRequest.create(
+		{
+			"userId": userId,
+			"productId": productId,
+			"transactionId": transactionId,
+			"amount": amount,
+			"udf1": udf1,
+			"udf2": udf2,
+			"udf3": udf3,
+			"udf11": udf11,
+			"udf12": transactionId
+		});
+
+	var requestNdpsPayment =
+	{
+		loginid: loginId,
+		password: password,
+		ttype: txnType,
+		productid: productId,
+		transactionsid: transactionId, // CKSC unique order id - for each txn
+		amount: amount,
+		txncurrency: "INR",
+		clientcode: clientCode, // base64(CKSC)
+		date: moment().format("DD/MM/yyyy HH:m:ss"),
+		custacc: custAcc,
+		udf1: udf1, // Name
+		udf2: udf2, // Email
+		udf3: udf3, // Mobile
+		udf11: udf11, // CKSC Registration Number
+		udf12: transactionId, // transactionId
+		ru: ru,
+		payUrl: payURL,
+		encHashKey: hashEncryptionKey,
+		encRequestKey: requestEncryptionKey
+	};
+
+	console.log("requestNdpsPayment is: ", requestNdpsPayment);
+
+	res.redirect(ndps.ndpsencrypt(requestNdpsPayment));
+});
+
 module.exports =
 {
-	createPaymentRequest, receivePaymentResponse
+	createPaymentRequest, receivePaymentResponse, verifyPayment
 };
