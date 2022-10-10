@@ -29,14 +29,6 @@ const paymentRequestSchema = mongoose.Schema(
 		udf3:
 		{
 			type: String
-		},
-		udf11:
-		{
-			type: String
-		},
-		udf12:
-		{
-			type: String
 		}
 	},
 	{

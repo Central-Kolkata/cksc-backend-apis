@@ -1,11 +1,13 @@
 const asyncHandler = require("express-async-handler");
+const axios = require("axios");
 const ndps = require('ndps-nodejs');
 const moment = require("moment");
 const { v4: uuidv4 } = require("uuid");
 const PaymentRequest = require("../models/payment-request");
 const PaymentResponse = require("../models/payment-response");
+const PaymentRequery = require("../models/payment-requery");
 
-const createPaymentRequest = asyncHandler(async (req, res) =>
+const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 {
 	var request = req.body;
 
@@ -17,7 +19,7 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 	let productId = process.env.PRODUCT_ID;
 	let clientCode = process.env.CLIENT_CODE;
 	let custAcc = process.env.CUST_ACC;
-	let ru = process.env.RU;
+	let ru = (NODE_ENV == "development" ? process.env.CKSC_DEV_BASE_URL : CKSC_LIVE_BASE_URL) + process.env.RU;
 	let payURL = process.env.PAY_URL;
 	let hashEncryptionKey = process.env.HASH_REQUEST_ENCRYPTION_KEY;
 	let requestEncryptionKey = process.env.REQUEST_ENCRYPTION_KEY;
@@ -25,7 +27,6 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 	let udf1 = request.udf1 || "udf-11"; // Name
 	let udf2 = request.udf2 || "udf-22"; // Email
 	let udf3 = request.udf3 || "udf-33"; // Mobile
-	let udf11 = request.udf11 || "udf-11"; // CKSC Registration Number
 
 	let amount = request.amount;
 	let transactionId = uuidv4();
@@ -38,9 +39,7 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 			"amount": amount,
 			"udf1": udf1,
 			"udf2": udf2,
-			"udf3": udf3,
-			"udf11": udf11,
-			"udf12": transactionId
+			"udf3": udf3
 		});
 
 	var requestNdpsPayment =
@@ -66,7 +65,7 @@ const createPaymentRequest = asyncHandler(async (req, res) =>
 
 	console.log("requestNdpsPayment is: ", requestNdpsPayment);
 
-	res.redirect(ndps.ndpsencrypt(requestNdpsPayment));
+	res.json(ndps.ndpsencrypt(requestNdpsPayment));
 });
 
 const receivePaymentResponse = asyncHandler(async (req, res) =>
@@ -102,15 +101,13 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 
 	await PaymentResponse.create(
 		{
-			"userId": response.udf11,
-			"transactionId": response.udf12,
+			"transactionId": response.mer_txn,
 			"transactionTimestamp": response.date,
 			"cardNumber": response.CardNumber,
 			"surcharge": response.surcharge,
 			"scheme": response.scheme,
 			"signature": response.signature,
 			"amount": response.amt,
-			"merchantTransaction": response.mer_txn,
 			"fCode": response.f_code,
 			"bankTransactionReference": response.bank_txn,
 			"ipgTransactionId": response.ipg_txn_id,
@@ -122,81 +119,124 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 			"transactionMessage": transactionMessage,
 			"udf1": response.udf1,
 			"udf2": response.udf2,
-			"udf3": response.udf3,
-			"udf11": response.udf11,
-			"udf12": response.udf12
+			"udf3": response.udf3
 		});
 
-	res.json(transactionMessage);
+	res.redirect(`${process.env.CKSC_DEV_BASE_URL}/payment-response.html`);
 });
 
-const verifyPayment = asyncHandler(async (req, res) =>
+const fetchRequeryURL = asyncHandler(async (req, res) =>
 {
 	var request = req.body;
 
-	let userId = request.userId;
-
 	let loginId = process.env.LOGIN_ID;
-	let password = process.env.PASSWORD;
-	let txnType = process.env.TXN_TYPE;
-	let productId = process.env.PRODUCT_ID;
+	let merchantId = process.env.LOGIN_ID;
+
+	let merchantTransactionId = request.merchantTransactionId;
+	let amount = request.amount;
+	let transactionDate = request.transactionDate;
+
+	let requeryURL = process.env.REQUERY_URL;
+	let requeryRU = process.env.requeryRU;
 	let clientCode = process.env.CLIENT_CODE;
-	let custAcc = process.env.CUST_ACC;
-	let ru = process.env.RU;
-	let payURL = process.env.VERIFY_URL;
 	let hashEncryptionKey = process.env.HASH_REQUEST_ENCRYPTION_KEY;
 	let requestEncryptionKey = process.env.REQUEST_ENCRYPTION_KEY;
 
-	let udf1 = request.udf1 || "udf-11"; // Name
-	let udf2 = request.udf2 || "udf-22"; // Email
-	let udf3 = request.udf3 || "udf-33"; // Mobile
-	let udf11 = request.udf11 || "udf-11"; // CKSC Registration Number
-
-	let amount = request.amount;
-	let transactionId = uuidv4();
-
-	await PaymentRequest.create(
+	await PaymentRequery.create(
 		{
-			"userId": userId,
-			"productId": productId,
-			"transactionId": transactionId,
+			"loginId": loginId,
+			"merchantId": merchantId,
+			"merchantTransactionId": merchantTransactionId,
 			"amount": amount,
-			"udf1": udf1,
-			"udf2": udf2,
-			"udf3": udf3,
-			"udf11": udf11,
-			"udf12": transactionId
+			"transactionDate": transactionDate
 		});
 
-	var requestNdpsPayment =
+	var requestNdpsVerification =
 	{
-		loginid: loginId,
-		password: password,
-		ttype: txnType,
-		productid: productId,
-		transactionsid: transactionId, // CKSC unique order id - for each txn
-		amount: amount,
-		txncurrency: "INR",
 		clientcode: clientCode, // base64(CKSC)
-		date: moment().format("DD/MM/yyyy HH:m:ss"),
-		custacc: custAcc,
-		udf1: udf1, // Name
-		udf2: udf2, // Email
-		udf3: udf3, // Mobile
-		udf11: udf11, // CKSC Registration Number
-		udf12: transactionId, // transactionId
-		ru: ru,
-		payUrl: payURL,
+		loginid: loginId,
+		merchantid: merchantId,
+		merchanttxnid: merchantTransactionId,
+		amt: amount,
+		tdate: transactionDate,
+		ru: requeryRU,
+		payUrl: requeryURL,
 		encHashKey: hashEncryptionKey,
 		encRequestKey: requestEncryptionKey
 	};
 
-	console.log("requestNdpsPayment is: ", requestNdpsPayment);
+	console.log("requestNdpsVerification is: ", requestNdpsVerification);
 
-	res.redirect(ndps.ndpsencrypt(requestNdpsPayment));
+	res.json(ndps.ndpsencrypt(requestNdpsVerification));
+});
+
+const createRequeryRequest = asyncHandler(async (req, res) =>
+{
+	console.log("request", req.body.url);
+	const response = await axios.get(req.body.url);
+
+	var responseNdpsPayment =
+	{
+		response: response.data,
+		decResponseKey: process.env.RESPONSE_ENCRYPTION_KEY
+	};
+
+	const finalResponse = ndps.ndpsresponse(responseNdpsPayment);
+
+	console.log(finalResponse);
+
+	res.json(finalResponse);
+});
+
+const decodeResponse = (responseData) =>
+{
+	var responseNdpsPayment =
+	{
+		response: responseData,
+		decResponseKey: process.env.RESPONSE_ENCRYPTION_KEY
+	};
+
+	var response = ndps.ndpsresponse(responseNdpsPayment);
+	var signature = ndps.verifysignature(response, process.env.HASH_RESPONSE_ENCRYPTION_KEY);
+
+	console.log("Requery response", response);
+};
+
+const receiveRequeryResponse = asyncHandler(async (req, res) =>
+{
+	var responseNdpsPayment =
+	{
+		response: req.body.encdata,
+		decResponseKey: process.env.RESPONSE_ENCRYPTION_KEY
+	};
+
+	var response = ndps.ndpsresponse(responseNdpsPayment);
+	var signature = ndps.verifysignature(response, process.env.HASH_RESPONSE_ENCRYPTION_KEY);
+
+	console.log("Requery response", response);
+
+	var transactionMessage = "Transaction Failed due to signature mismatch";
+
+	if (signature === response["signature"])
+	{
+		if (response["f_code"] == "Ok")
+		{
+			transactionMessage = "Transaction successful";
+		}
+		else if (response["f_code"] == "C")
+		{
+			transactionMessage = "Transaction Cancelled";
+		}
+		else
+		{
+			transactionMessage = "Transaction Failed";
+		}
+	}
+
+	res.json(transactionMessage);
 });
 
 module.exports =
 {
-	createPaymentRequest, receivePaymentResponse, verifyPayment
+	fetchPaymentRequestURL, receivePaymentResponse, fetchRequeryURL, createRequeryRequest, receiveRequeryResponse
 };

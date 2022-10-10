@@ -2,10 +2,6 @@ const mongoose = require("mongoose");
 
 const paymentResponseSchema = mongoose.Schema(
 	{
-		userId:
-		{
-			type: String
-		},
 		transactionId:
 		{
 			type: String
@@ -33,10 +29,6 @@ const paymentResponseSchema = mongoose.Schema(
 		amount:
 		{
 			type: Number
-		},
-		merchantTransaction:
-		{
-			type: String
 		},
 		fCode:
 		{
@@ -83,14 +75,6 @@ const paymentResponseSchema = mongoose.Schema(
 			type: String
 		},
 		udf3:
-		{
-			type: String
-		},
-		udf11:
-		{
-			type: String
-		},
-		udf12:
 		{
 			type: String
 		}

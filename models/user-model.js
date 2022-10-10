@@ -7,10 +7,14 @@ const userSchema = mongoose.Schema(
 			type: String,
 			required: [true, "Name is mandatory"]
 		},
-		membershipNo:
+		icaiMembershipNo:
 		{
 			type: String,
-			required: [true, "Membership Number is mandatory"]
+			required: [true, "ICAI Membership Number is mandatory"]
+		},
+		ckscMembershipNo:
+		{
+			type: String
 		},
 		pendingAmount:
 		{

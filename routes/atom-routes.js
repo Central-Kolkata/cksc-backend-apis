@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { createPaymentRequest, receivePaymentResponse, verifyPayment } = require("../controllers/atom-controller");
+const { fetchPaymentRequestURL, receivePaymentResponse, fetchRequeryURL, createRequeryRequest, receiveRequeryResponse } = require("../controllers/atom-controller");
 
-router.route(`/createPaymentRequest/`).post(createPaymentRequest);
+router.route(`/fetchPaymentRequestURL`).post(fetchPaymentRequestURL);
 router.route(`/receivePaymentResponse`).post(receivePaymentResponse);
-router.route(`/verifyPayment`).post(verifyPayment);
+router.route(`/fetchRequeryURL`).post(fetchRequeryURL);
+router.route(`/createRequeryRequest`).post(createRequeryRequest);
+router.route(`/receiveRequeryResponse`).post(receiveRequeryResponse);
 
 module.exports = router;
