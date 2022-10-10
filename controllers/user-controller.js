@@ -65,7 +65,7 @@ const deleteUser = asyncHandler(async (req, res) =>
 
 const fetchPendingAmount = asyncHandler(async (req, res) =>
 {
-	const user = await User.find({ membershipNo: req.params.membershipNo });
+	const user = await User.find({ icaiMembershipNo: req.params.icaiMembershipNo });
 
 	res.status(200).json(
 		{

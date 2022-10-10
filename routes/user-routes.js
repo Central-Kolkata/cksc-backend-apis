@@ -5,6 +5,6 @@ const { fetchUsers, createUser, createUsers, fetchPendingAmount, updateUser, del
 router.route(`/`).get(fetchUsers).post(createUser);
 router.route(`/createUsers`).post(createUsers);
 router.route(`/:id`).put(updateUser).delete(deleteUser);
-router.route(`/fetchPendingAmount/:membershipNo`).get(fetchPendingAmount);
+router.route(`/fetchPendingAmount/:icaiMembershipNo`).get(fetchPendingAmount);
 
 module.exports = router;
