@@ -6,6 +6,14 @@ const paymentResponseSchema = mongoose.Schema(
 		{
 			type: String
 		},
+		icaiMembershipNo:
+		{
+			type: String
+		},
+		ckscMembershipNo:
+		{
+			type: String
+		},
 		transactionTimestamp:
 		{
 			type: String

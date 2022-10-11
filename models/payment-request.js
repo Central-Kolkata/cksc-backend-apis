@@ -6,6 +6,10 @@ const paymentRequestSchema = mongoose.Schema(
 		{
 			type: String
 		},
+		icaiMembershipNo:
+		{
+			type: String
+		},
 		ckscMembershipNo:
 		{
 			type: String

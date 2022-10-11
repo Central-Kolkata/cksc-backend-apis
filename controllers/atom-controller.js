@@ -12,6 +12,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	var request = req.body;
 
 	let userId = request.userId;
+	let icaiMembershipNo = request.icaiMembershipNo;
 	let ckscMembershipNo = request.ckscMembershipNo;
 
 	let loginId = process.env.LOGIN_ID;
@@ -35,6 +36,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	await PaymentRequest.create(
 		{
 			"userId": userId,
+			"icaiMembershipNo": icaiMembershipNo,
 			"ckscMembershipNo": ckscMembershipNo,
 			"productId": productId,
 			"transactionId": transactionId,
@@ -128,8 +130,12 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 			"udf3": response.udf3
 		});
 
-	let queryString = paymentRequest[0].userId + "|" + paymentRequest[0].ckscMembershipNo + "|" + response.mer_txn + "|" + response.date + "|" + response.CardNumber + "|"
-		+ response.surcharge + "|" + response.amt + "|" + response.bank_txn + "|"
+	console.log("transactionMessage", transactionMessage);
+
+	const success = transactionMessage === "Transaction successful";
+
+	let queryString = success + "|" + paymentRequest[0].userId + "|" + paymentRequest[0].icaiMembershipNo + "|" + paymentRequest[0].ckscMembershipNo + "|" + response.mer_txn + "|" + response.date + "|" + response.CardNumber + "|"
+		+ response.amt + "|" + response.surcharge + "|" + response.bank_txn + "|"
 		+ response.ipg_txn_id + "|" + response.bank_name + "|" + response.desc + "|"
 		+ response.udf1 + "|" + response.udf2 + "|" + response.udf3;
 
