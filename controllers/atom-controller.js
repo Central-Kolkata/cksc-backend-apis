@@ -12,6 +12,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	var request = req.body;
 
 	let userId = request.userId;
+	let ckscMembershipNo = request.ckscMembershipNo;
 
 	let loginId = process.env.LOGIN_ID;
 	let password = process.env.PASSWORD;
@@ -19,7 +20,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	let productId = process.env.PRODUCT_ID;
 	let clientCode = process.env.CLIENT_CODE;
 	let custAcc = process.env.CUST_ACC;
-	let ru = (NODE_ENV == "development" ? process.env.CKSC_DEV_BASE_URL : CKSC_LIVE_BASE_URL) + process.env.RU;
+	let ru = process.env.BACKEND_BASE_URL + process.env.RU;
 	let payURL = process.env.PAY_URL;
 	let hashEncryptionKey = process.env.HASH_REQUEST_ENCRYPTION_KEY;
 	let requestEncryptionKey = process.env.REQUEST_ENCRYPTION_KEY;
@@ -34,6 +35,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	await PaymentRequest.create(
 		{
 			"userId": userId,
+			"ckscMembershipNo": ckscMembershipNo,
 			"productId": productId,
 			"transactionId": transactionId,
 			"amount": amount,
@@ -99,6 +101,10 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 		}
 	}
 
+	const paymentRequest = await PaymentRequest.find({ transactionId: response.mer_txn });
+
+	console.log("paymentRequest", paymentRequest);
+
 	await PaymentResponse.create(
 		{
 			"transactionId": response.mer_txn,
@@ -122,7 +128,12 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 			"udf3": response.udf3
 		});
 
-	res.redirect(`${process.env.CKSC_DEV_BASE_URL}/payment-response.html`);
+	let queryString = paymentRequest[0].userId + "|" + paymentRequest[0].ckscMembershipNo + "|" + response.mer_txn + "|" + response.date + "|" + response.CardNumber + "|"
+		+ response.surcharge + "|" + response.amt + "|" + response.bank_txn + "|"
+		+ response.ipg_txn_id + "|" + response.bank_name + "|" + response.desc + "|"
+		+ response.udf1 + "|" + response.udf2 + "|" + response.udf3;
+
+	res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 });
 
 const fetchRequeryURL = asyncHandler(async (req, res) =>
