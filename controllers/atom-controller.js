@@ -154,7 +154,7 @@ const fetchRequeryURL = asyncHandler(async (req, res) =>
 	let transactionDate = request.transactionDate;
 
 	let requeryURL = process.env.REQUERY_URL;
-	let requeryRU = process.env.requeryRU;
+	let requeryRU = process.env.REQUERY_RU;
 	let clientCode = process.env.CLIENT_CODE;
 	let hashEncryptionKey = process.env.HASH_REQUEST_ENCRYPTION_KEY;
 	let requestEncryptionKey = process.env.REQUEST_ENCRYPTION_KEY;
@@ -189,8 +189,13 @@ const fetchRequeryURL = asyncHandler(async (req, res) =>
 
 const createRequeryRequest = asyncHandler(async (req, res) =>
 {
-	console.log("request", req.body.url);
+	console.log("Requery Request URL:\n", req.body.url);
 	const response = await axios.get(req.body.url);
+
+	console.log("============================");
+	console.log("first", response.data);
+	console.log("============================");
+	console.log("second", process.env.RESPONSE_ENCRYPTION_KEY);
 
 	var responseNdpsPayment =
 	{
@@ -198,9 +203,12 @@ const createRequeryRequest = asyncHandler(async (req, res) =>
 		decResponseKey: process.env.RESPONSE_ENCRYPTION_KEY
 	};
 
+	console.log("============================");
+	console.log("third", responseNdpsPayment);
+
 	const finalResponse = ndps.ndpsresponse(responseNdpsPayment);
 
-	console.log(finalResponse);
+	console.log("Requery Response Data\n", finalResponse);
 
 	res.json(finalResponse);
 });
