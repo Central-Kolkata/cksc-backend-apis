@@ -6,6 +6,8 @@ const { v4: uuidv4 } = require("uuid");
 const PaymentRequest = require("../models/payment-request");
 const PaymentResponse = require("../models/payment-response");
 const PaymentRequery = require("../models/payment-requery");
+const crypto = require('crypto');
+var unirest = require("unirest");
 
 const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 {
@@ -154,7 +156,6 @@ const fetchRequeryURL = asyncHandler(async (req, res) =>
 	let transactionDate = request.transactionDate;
 
 	let requeryURL = process.env.REQUERY_URL;
-	let requeryRU = process.env.REQUERY_RU;
 	let clientCode = process.env.CLIENT_CODE;
 	let hashEncryptionKey = process.env.HASH_REQUEST_ENCRYPTION_KEY;
 	let requestEncryptionKey = process.env.REQUEST_ENCRYPTION_KEY;
@@ -170,13 +171,12 @@ const fetchRequeryURL = asyncHandler(async (req, res) =>
 
 	var requestNdpsVerification =
 	{
-		clientcode: clientCode, // base64(CKSC)
-		loginid: loginId,
 		merchantid: merchantId,
 		merchanttxnid: merchantTransactionId,
 		amt: amount,
 		tdate: transactionDate,
-		ru: requeryRU,
+		clientcode: clientCode, // base64(CKSC)
+		loginid: loginId,
 		payUrl: requeryURL,
 		encHashKey: hashEncryptionKey,
 		encRequestKey: requestEncryptionKey
@@ -261,7 +261,91 @@ const receiveRequeryResponse = asyncHandler(async (req, res) =>
 	res.json(transactionMessage);
 });
 
+const requeryTransaction = asyncHandler(async (req, res) =>
+{
+	var request = req.body;
+
+	console.log("request", request);
+
+	let merchTxnId = request.merchantTransactionId;
+	let amount = request.amount;
+	let date = request.transactionDate;
+	let merchId = process.env.LOGIN_ID;
+
+	let req_enc_key = process.env.REQUEST_ENCRYPTION_KEY;
+	let req_salt = process.env.REQUEST_ENCRYPTION_KEY;
+
+	let res_dec_key = process.env.RESPONSE_ENCRYPTION_KEY;
+	let res_dec_salt = process.env.RESPONSE_ENCRYPTION_KEY;
+
+	var strToEnc = "merchantid=" + merchId + "&merchanttxnid=" + merchTxnId + "&amt=" + amount + "&tdate=" + date;
+
+	const algorithm = 'aes-256-cbc';
+	const password = Buffer.from(req_enc_key, 'utf8');
+	const salt = Buffer.from(req_salt, 'utf8');
+	const iv = Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 'utf8');
+
+	const encrypt = (text) =>
+	{
+		var derivedKey = crypto.pbkdf2Sync(password, salt, 65536, 32, 'sha1');
+		const cipher = crypto.createCipheriv(algorithm, derivedKey, iv);
+		let encrypted = cipher.update(text);
+		encrypted = Buffer.concat([encrypted, cipher.final()]);
+		return `${encrypted.toString('hex')}`;
+	};
+
+	var encdata = encrypt(strToEnc);
+	var req = unirest("POST", "https://paynetzuat.atomtech.in/paynetz/vftsv2"); // change url in case of production
+
+	req.headers(
+		{
+			"cache-control": "no-cache",
+			"content-type": "application/x-www-form-urlencoded"
+		});
+
+	req.form(
+		{
+			"login": merchId,
+			"encdata": encdata
+		});
+
+	req.end(function (res)
+	{
+		if (res.error) throw new Error(res.error);
+
+		let datas = res.body;
+
+		const password = Buffer.from(res_dec_key, 'utf8');
+		const salt = Buffer.from(res_dec_salt, 'utf8');
+
+		const decrypt = (text) =>
+		{
+			const encryptedText = Buffer.from(text, 'hex');
+			var derivedKey = crypto.pbkdf2Sync(password, salt, 65536, 32, 'sha1');
+			const decipher = crypto.createDecipheriv(algorithm, derivedKey, iv);
+			let decrypted = decipher.update(encryptedText);
+			decrypted = Buffer.concat([decrypted, decipher.final()]);
+			return decrypted.toString();
+		};
+
+		var decrypted_data = decrypt(datas);
+		let jsonData = JSON.parse(decrypted_data);
+		let respArray = Object.keys(jsonData).map(key => jsonData[key]);
+
+		if (respArray[0]['verified'] === 'SUCCESS')
+		{
+			console.log("To see full array result");
+			console.log(respArray[0]);
+			console.log("Query Status = " + respArray[0]['verified']);
+		}
+		else
+		{
+			console.log("Failed");
+		}
+	});
+});
+
 module.exports =
 {
-	fetchPaymentRequestURL, receivePaymentResponse, fetchRequeryURL, createRequeryRequest, receiveRequeryResponse
+	fetchPaymentRequestURL, receivePaymentResponse, fetchRequeryURL, createRequeryRequest, receiveRequeryResponse, requeryTransaction
 };
