@@ -85,6 +85,10 @@ const paymentResponseSchema = mongoose.Schema(
 		udf3:
 		{
 			type: String
+		},
+		udf4:
+		{
+			type: String
 		}
 	},
 	{
