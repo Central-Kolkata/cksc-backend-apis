@@ -5,6 +5,8 @@ const moment = require("moment");
 const { v4: uuidv4 } = require("uuid");
 const PaymentRequest = require("../models/payment-request");
 const PaymentResponse = require("../models/payment-response");
+const UserPayment = require("../models/user-payment");
+const User = require("../models/user-model");
 const crypto = require("crypto");
 var unirest = require("unirest");
 
@@ -30,7 +32,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	let udf1 = request.udf1 || "udf-11"; // Name
 	let udf2 = request.udf2 || "udf-22"; // Email
 	let udf3 = request.udf3 || "udf-33"; // Mobile
-	let udf4 = "udf4";
+	let udf4 = moment().format("YYYY-MM-DD"); // Will be used for requery
 
 	let amount = request.amount;
 	let transactionId = uuidv4();
@@ -64,7 +66,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 		udf1: udf1, // Name
 		udf2: udf2, // Email
 		udf3: udf3, // Mobile
-		udf4: moment().format("YYYY-MM-DD"), // Will be used for requery
+		udf4: udf4, // Will be used for requery
 		ru: ru,
 		payUrl: payURL,
 		encHashKey: hashEncryptionKey,
@@ -105,7 +107,7 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 
 	const paymentRequest = await PaymentRequest.find({ transactionId: response.mer_txn });
 
-	await PaymentResponse.create(
+	const paymentResponse = await PaymentResponse.create(
 		{
 			"transactionId": response.mer_txn,
 			"transactionTimestamp": response.date,
@@ -129,12 +131,20 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 			"udf4": response.udf4
 		});
 
+	const userPaymentResponse = await UserPayment.create(
+		{
+			"userId": paymentRequest[0].userId,
+			"paymentRequestId": paymentRequest[0]._id,
+			"paymentResponseId": paymentResponse._id,
+			"paymentStatus": "Init -> " + transactionMessage
+		});
+
 	const success = transactionMessage === "Transaction successful";
 
 	let queryString = success + "|" + paymentRequest[0].userId + "|" + paymentRequest[0].icaiMembershipNo + "|" + paymentRequest[0].ckscMembershipNo + "|" + response.mer_txn + "|" + response.date + "|" + response.CardNumber + "|"
 		+ response.amt + "|" + response.surcharge + "|" + response.bank_txn + "|"
 		+ response.ipg_txn_id + "|" + response.bank_name + "|" + response.desc + "|"
-		+ response.udf1 + "|" + response.udf2 + "|" + response.udf3 + "|" + response.udf4;
+		+ response.udf1 + "|" + response.udf2 + "|" + response.udf3 + "|" + response.udf4 + "|" + userPaymentResponse._id.toString();
 
 	res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 });
@@ -146,6 +156,7 @@ const requeryTransaction = asyncHandler(async (req, ckscResponse) =>
 	let merchTxnId = request.merchantTransactionId;
 	let amount = request.amount;
 	let date = request.transactionDate;
+	let userPaymentId = request.userPaymentId;
 	let merchId = process.env.LOGIN_ID;
 
 	let req_enc_key = process.env.REQUEST_ENCRYPTION_KEY;
@@ -171,7 +182,7 @@ const requeryTransaction = asyncHandler(async (req, ckscResponse) =>
 	};
 
 	var encdata = encrypt(strToEnc);
-	var req = unirest("POST", "https://paynetzuat.atomtech.in/paynetz/vftsv2"); // change url in case of production
+	var req = unirest("POST", process.env.REQUERY_URL);
 
 	req.headers(
 		{
@@ -185,9 +196,12 @@ const requeryTransaction = asyncHandler(async (req, ckscResponse) =>
 			"encdata": encdata
 		});
 
-	req.end(function (res)
+	req.end(async function (res)
 	{
-		if (res.error) throw new Error(res.error);
+		if (res.error)
+		{
+			throw new Error(res.error);
+		}
 
 		let datas = res.body;
 
@@ -201,6 +215,7 @@ const requeryTransaction = asyncHandler(async (req, ckscResponse) =>
 			const decipher = crypto.createDecipheriv(algorithm, derivedKey, iv);
 			let decrypted = decipher.update(encryptedText);
 			decrypted = Buffer.concat([decrypted, decipher.final()]);
+
 			return decrypted.toString();
 		};
 
@@ -210,11 +225,15 @@ const requeryTransaction = asyncHandler(async (req, ckscResponse) =>
 
 		if (respArray[0]["verified"] === "SUCCESS")
 		{
-			ckscResponse.json(200, "SUCCESS");
+			const userPayment = await UserPayment.findByIdAndUpdate(userPaymentId, { "paymentStatus": "SUCCESS" }, { new: true });
+			await User.findByIdAndUpdate(userPayment.userId.toString(), { "$inc": { "pendingAmount": amount * -1 } });
+
+			ckscResponse.status(200).json("SUCCESS");
 		}
 		else
 		{
-			ckscResponse.json(500, "Requery Error");
+			await UserPayment.findByIdAndUpdate(userPaymentId, { "paymentStatus": "FAILURE in REQUERY" });
+			ckscResponse.status(500).json("Requery Error");
 		}
 	});
 });
