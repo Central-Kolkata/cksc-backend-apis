@@ -1,5 +1,4 @@
 const asyncHandler = require("express-async-handler");
-const axios = require("axios");
 const ndps = require("ndps-nodejs");
 const moment = require("moment");
 const { v4: uuidv4 } = require("uuid");
