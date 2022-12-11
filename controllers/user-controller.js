@@ -6,30 +6,21 @@ const fetchUsers = asyncHandler(async (req, res) =>
 {
 	const users = await User.find();
 
-	res.status(200).json(
-		{
-			users
-		});
+	res.status(200).json({users});
 });
 
 const createUser = asyncHandler(async (req, res) =>
 {
 	const user = await User.create(req.body);
 
-	res.status(201).json(
-		{
-			user
-		});
+	res.status(201).json({user});
 });
 
 const createUsers = asyncHandler(async (req, res) =>
 {
-	const users = await User.insertMany(req.body);
+	await User.insertMany(req.body);
 
-	res.status(201).json(
-		{
-			users
-		});
+	res.status(201).json({message: "User Created Successfully"});
 });
 
 const updateUser = asyncHandler(async (req, res) =>
@@ -42,8 +33,8 @@ const updateUser = asyncHandler(async (req, res) =>
 		throw new Error("User not found");
 	}
 
-	const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-	res.status(200).json(updatedUser);
+	await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+	res.status(200).json({message: "User Updated Successfully"});
 });
 
 const deleteUser = asyncHandler(async (req, res) =>
@@ -58,19 +49,17 @@ const deleteUser = asyncHandler(async (req, res) =>
 
 	await user.remove();
 
-	res.status(200).json(
-		{
-			id: req.params.id
-		});
+	res.status(200).json({message: "User Deleted Successfully"});
 });
 
 const fetchPendingAmount = asyncHandler(async (req, res) =>
 {
-	const user = await User.find({ icaiMembershipNo: req.params.icaiMembershipNo });
+	const user = await User.findOne({ icaiMembershipNo: req.params.icaiMembershipNo });
 
 	res.status(200).json(
 		{
-			user
+			message: "Data fetched Successfully",
+			response: user
 		}
 	);
 });
