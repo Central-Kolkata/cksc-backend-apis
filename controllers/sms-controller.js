@@ -4,7 +4,7 @@ const axios = require("axios");
 const sendSMS = asyncHandler(async (req, res) =>
 {
 	let mobileNumber = req.body.mobileNumber;
-	mobileNumber = "8100318714";
+	mobileNumber = "9830357456";
 
 	let memberName = req.body.memberName;
 	let paidAmount = req.body.paidAmount;
