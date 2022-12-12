@@ -18,8 +18,10 @@
     "moment": "^2.29.4",
     "mongoose": "^6.6.4",
     "ndps-nodejs": "^1.0.3",
+    "twilio": "^3.83.4",
+    "unirest": "^0.6.0",
     "uuid": "^9.0.0",
-    "unirest": "^0.6.0"
+    "wbm": "^1.1.16"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"

@@ -27,6 +27,8 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(`/api/users`, require("./routes/user-routes"));
 app.use(`/api/atom`, require("./routes/atom-routes"));
+app.use(`/api/sms`, require("./routes/sms-routes"));
+app.use(`/api/whatsapp`, require("./routes/whatsapp-routes"));
 
 app.use(errorHandler);
 
