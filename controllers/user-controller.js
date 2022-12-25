@@ -84,7 +84,42 @@ const fetchUserTransactions = asyncHandler(async (req, res) =>
 	res.status(200).json({ message: "Transactions Data fetched Successfully", response: transactionData });
 });
 
+const getDashboardData = asyncHandler(async (req, res) =>
+{
+	const totalUsers = await User.find().countDocuments();
+
+	const userPaymentData = await userPayment.find({ paymentStatus: { $in: ["Init -> Transaction successful", "SUCCESS"] } }).populate("paymentResponseId");
+
+	let totalPaymentReceived = 0;
+
+	for(let index in userPaymentData) {
+		if (!userPaymentData[index]["paymentResponseId"]["transactionMessage"].includes("Failed")) {
+			totalPaymentReceived += userPaymentData[index]["paymentResponseId"]["amount"];
+		}
+	}
+
+	const totalPendingAmount = await User.aggregate([
+		{
+			$match: { pendingAmount: { $ne: 0 } }
+		},
+		{
+			$group: {
+				_id: null,
+				totalPendingAmount: { $sum: "$pendingAmount"},
+			}
+		}
+	]);
+
+	const response = {
+		totalUsers: totalUsers,
+		totalPaymentReceived: totalPaymentReceived,
+		totalPendingAmount: totalPendingAmount[0]["totalPendingAmount"]
+	};
+
+	res.status(200).json({ message: "Dashboard Data fetched Successfully", response: response });
+});
+
 module.exports =
 {
-	fetchUsers, createUser, createUsers, fetchPendingAmount, updateUser, deleteUser, fetchUserTransactions
+	fetchUsers, createUser, createUsers, fetchPendingAmount, updateUser, deleteUser, fetchUserTransactions, getDashboardData
 };
