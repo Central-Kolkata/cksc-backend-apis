@@ -18,6 +18,11 @@ const userPaymentSchema = mongoose.Schema(
 			type: Schema.Types.ObjectId,
 			ref: "PaymentResponse"
 		},
+		offlinePaymentId:
+		{
+			type: Schema.Types.ObjectId,
+			ref: "OfflinePayment"
+		},
 		paymentStatus:
 		{
 			type: String

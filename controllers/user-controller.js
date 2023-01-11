@@ -119,7 +119,16 @@ const getDashboardData = asyncHandler(async (req, res) =>
 	res.status(200).json({ message: "Dashboard Data fetched Successfully", response: response });
 });
 
+const fetchAllPendingAmounts = asyncHandler(async (req, res) =>
+{
+	const find_query = { pendingAmount: { $ne: 0 } };
+
+	const pendingAmounts = await User.find(find_query);
+
+	res.status(200).json({ message: "Total Pending Amounts fetched Successfully", response: pendingAmounts });
+});
+
 module.exports =
 {
-	fetchUsers, createUser, createUsers, fetchPendingAmount, updateUser, deleteUser, fetchUserTransactions, getDashboardData
+	fetchUsers, createUser, createUsers, fetchPendingAmount, updateUser, deleteUser, fetchUserTransactions, getDashboardData, fetchAllPendingAmounts
 };
