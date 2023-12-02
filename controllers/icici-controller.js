@@ -36,12 +36,34 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 
 	let mandatoryFields = `${referenceNo}|${process.env.ICICI_SUB_MERCHANT_ID}|${amount}|${name}|${mobile}|${address}|${pan}|${email}`;
 
+	const queryParams1 =
+	{
+		merchantid: process.env.ICICI_MERCHANT_ID,
+		"mandatory fields": mandatoryFields,
+		// "optional fields": "",
+		returnurl: `${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`,
+		"Reference No": referenceNo,
+		submerchantid: process.env.ICICI_SUB_MERCHANT_ID,
+		"transaction amount": amount,
+		paymode: process.env.ICICI_PAYMODE
+	};
+
+	const queryString1 = Object.entries(queryParams1)
+		.map(([key, value]) => `${key}=${value}`)
+		.join("&");
+
+	const paymentURL1 = `${process.env.ICICI_PAY_URL}${queryString1}`;
+
+	console.log("=============================");
+	console.log("Raw", paymentURL1);
+
 	const queryParams =
 	{
 		merchantid: process.env.ICICI_MERCHANT_ID,
-		mandatoryfields: encryptData(mandatoryFields),
-		returnurl: encryptData(process.env.BACKEND_BASE_URL + process.env.ICICI_RETURN_URL),
-		ReferenceNo: encryptData(referenceNo),
+		"mandatory fields": encryptData(mandatoryFields),
+		"optional fields": "",
+		returnurl: encryptData(`${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`),
+		"Reference No": encryptData(referenceNo),
 		submerchantid: encryptData(process.env.ICICI_SUB_MERCHANT_ID),
 		"transaction amount": encryptData(amount),
 		paymode: encryptData(process.env.ICICI_PAYMODE)
@@ -53,12 +75,17 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 
 	const paymentURL = `${process.env.ICICI_PAY_URL}${queryString}`;
 
+	console.log("=============================");
+	console.log("Encrypted", paymentURL);
 	res.json(paymentURL);
 });
 
 const receivePaymentResponse = asyncHandler(async (req, res) =>
 {
+	console.log("1234");
 	console.log(req.body);
+
+	res.json(req.body);
 });
 
 const requeryTransaction = asyncHandler(async (req, ckscResponse) =>
