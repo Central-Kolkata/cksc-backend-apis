@@ -53,6 +53,8 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 
 	const paymentURL1 = `${process.env.ICICI_PAY_URL}${queryString1}`;
 
+	console.log("plaintextURL", paymentURL1);
+
 	const queryParams =
 	{
 		merchantid: process.env.ICICI_MERCHANT_ID,
