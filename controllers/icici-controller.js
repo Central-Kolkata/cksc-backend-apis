@@ -40,7 +40,6 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	{
 		merchantid: process.env.ICICI_MERCHANT_ID,
 		"mandatory fields": mandatoryFields,
-		// "optional fields": "",
 		returnurl: `${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`,
 		"Reference No": referenceNo,
 		submerchantid: process.env.ICICI_SUB_MERCHANT_ID,
@@ -54,14 +53,10 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 
 	const paymentURL1 = `${process.env.ICICI_PAY_URL}${queryString1}`;
 
-	console.log("=============================");
-	console.log("Raw", paymentURL1);
-
 	const queryParams =
 	{
 		merchantid: process.env.ICICI_MERCHANT_ID,
 		"mandatory fields": encryptData(mandatoryFields),
-		"optional fields": "",
 		returnurl: encryptData(`${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`),
 		"Reference No": encryptData(referenceNo),
 		submerchantid: encryptData(process.env.ICICI_SUB_MERCHANT_ID),
@@ -74,22 +69,85 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 		.join("&");
 
 	const paymentURL = `${process.env.ICICI_PAY_URL}${queryString}`;
-
-	console.log("=============================");
-	console.log("Encrypted", paymentURL);
 	res.json(paymentURL);
 });
 
 const receivePaymentResponse = asyncHandler(async (req, res) =>
 {
-	console.log("1234");
-	console.log(req.body);
-
 	res.json(req.body);
+	
+	// let receivedPaymentResponse = req.body;
+
+	// let responseCode = receivePaymentResponse["Response Code"];
+	// let iciciReferenceNo = receivePaymentResponse["Unique Ref Number"];
+	// let serviceTaxAmount = receivePaymentResponse["Service Tax Amount"];
+	// let processingFeeAmount = receivePaymentResponse["Processing Fee Amount"];
+	// let totalAmount = receivePaymentResponse["Total Amount"];
+	// let transactionAmount = receivePaymentResponse["Transaction Amount"];
+	// let transactionDate = receivePaymentResponse["Transaction Date"];
+	// let interchangeValue = receivePaymentResponse["Interchange Value"];
+	// let tdr = receivePaymentResponse["TDR"];
+	// let paymentMode = receivePaymentResponse["Payment Mode"];
+	// let submerchantId = receivePaymentResponse["SubMerchantId"];
+	// let ckscReferenceNo = receivePaymentResponse["ReferenceNo"];
+	// let tps = receivePaymentResponse["TPS"];
+	// let id = receivePaymentResponse["ID"];
+	// let rs = receivePaymentResponse["RS"];
+	
+	// let transactionMessage = "Transaction Failed";
+
+	// if (responseCode == "E000")
+	// {
+	// 	transactionMessage = "Transaction successful";
+	// }
+	
+	// const paymentRequest = await ICICIPaymentRequest.find({ referenceNo: ckscReferenceNo });
+
+	// const paymentResponse = await PaymentResponse.create(
+	// 	{
+	// 		"transactionId": response.mer_txn,
+	// 		"transactionTimestamp": response.date,
+	// 		"cardNumber": response.CardNumber,
+	// 		"surcharge": response.surcharge,
+	// 		"scheme": response.scheme,
+	// 		"signature": response.signature,
+	// 		"amount": response.amt,
+	// 		"fCode": response.f_code,
+	// 		"bankTransactionReference": response.bank_txn,
+	// 		"ipgTransactionId": response.ipg_txn_id,
+	// 		"bankName": response.bank_name,
+	// 		"mmpTransaction": response.mmp_txn,
+	// 		"discriminator": response.discriminator,
+	// 		"authCode": response.auth_code,
+	// 		"description": response.desc,
+	// 		"transactionMessage": transactionMessage,
+	// 		"udf1": response.udf1,
+	// 		"udf2": response.udf2,
+	// 		"udf3": response.udf3,
+	// 		"udf4": response.udf4
+	// 	});
+
+	// const userPaymentResponse = await UserPayment.create(
+	// 	{
+	// 		"userId": paymentRequest[0].userId,
+	// 		"paymentRequestId": paymentRequest[0]._id,
+	// 		"paymentResponseId": paymentResponse._id,
+	// 		"paymentStatus": "Init -> " + transactionMessage
+	// 	});
+
+	// const success = transactionMessage === "Transaction successful";
+
+	// let queryString = success + "|" + paymentRequest[0].userId + "|" + paymentRequest[0].icaiMembershipNo + "|" + paymentRequest[0].ckscMembershipNo + "|" + response.mer_txn + "|" + response.date + "|" + response.CardNumber + "|"
+	// 	+ response.amt + "|" + response.surcharge + "|" + response.bank_txn + "|"
+	// 	+ response.ipg_txn_id + "|" + response.bank_name + "|" + response.desc + "|"
+	// 	+ response.udf1 + "|" + response.udf2 + "|" + response.udf3 + "|" + response.udf4 + "|" + userPaymentResponse._id.toString();
+
+	// res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 });
 
-const requeryTransaction = asyncHandler(async (req, ckscResponse) =>
+const verifyTransaction = asyncHandler(async (req, ckscResponse) =>
 {
+	// Merchant ID, Reference Number needed
 });
 
 const encryptData = ((plainText, outputEncoding = "base64") =>
@@ -119,5 +177,6 @@ const generateEnhancedTimestampId = () =>
 
 module.exports =
 {
-	fetchPaymentRequestURL, receivePaymentResponse, requeryTransaction
+	fetchPaymentRequestURL, receivePaymentResponse, verifyTransaction
 };
+
