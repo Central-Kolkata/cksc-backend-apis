@@ -40,6 +40,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	{
 		merchantid: process.env.ICICI_MERCHANT_ID,
 		"mandatory fields": mandatoryFields,
+		"optional fields": "",
 		returnurl: `${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`,
 		"Reference No": referenceNo,
 		submerchantid: process.env.ICICI_SUB_MERCHANT_ID,
@@ -59,6 +60,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	{
 		merchantid: process.env.ICICI_MERCHANT_ID,
 		"mandatory fields": encryptData(mandatoryFields),
+		"optional fields": "",
 		returnurl: encryptData(`${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`),
 		"Reference No": encryptData(referenceNo),
 		submerchantid: encryptData(process.env.ICICI_SUB_MERCHANT_ID),
