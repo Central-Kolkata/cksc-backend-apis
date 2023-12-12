@@ -3,6 +3,66 @@ const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const ICICIPaymentRequest = require("../models/icici-payment-request");
 
+const fetchEncryptedRequestParams = asyncHandler(async (req, res) =>
+{
+	let request = req.body;
+
+	let userId = request.userId;
+	let icaiMembershipNo = request.icaiMembershipNo;
+	let ckscMembershipNo = request.ckscMembershipNo;
+
+	let name = request.name;
+	let email = request.email;
+	let mobile = request.mobile;
+	let address = request.address;
+	let pan = request.pan;
+
+	let amount = request.amount;
+	let referenceNo = generateEnhancedTimestampId(); // Will be used for reverifying a transaction
+
+	await ICICIPaymentRequest.create(
+		{
+			"userId": userId,
+			"icaiMembershipNo": icaiMembershipNo,
+			"ckscMembershipNo": ckscMembershipNo,
+			"name": name,
+			"email": email,
+			"mobile": mobile,
+			"address": address,
+			"pan": pan,
+			"amount": amount,
+			"referenceNo": referenceNo
+		});
+
+	let mandatoryFields = `${referenceNo}|${process.env.ICICI_SUB_MERCHANT_ID}|${amount}|${name}|${mobile}|${address}|${pan}|${email}`;
+
+	const queryParams =
+	{
+		"paymentURL": process.env.ICICI_PAY_URL,
+		"merchantid": process.env.ICICI_MERCHANT_ID,
+		"mandatory fields": encryptData(mandatoryFields),
+		"optional fields": "",
+		"returnurl": encryptData(`${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`),
+		"Reference No": encryptData(referenceNo),
+		"submerchantid": encryptData(process.env.ICICI_SUB_MERCHANT_ID),
+		"transaction amount": encryptData(amount),
+		"paymode": encryptData(process.env.ICICI_PAYMODE)
+	};
+
+	const qs = Object.entries(queryParams).reduce((acc, [key, value]) =>
+	{
+		acc[key] = value;
+		return acc;
+	}, {});
+
+	const queryString = Object.entries(queryParams)
+		.map(([key, value]) => `${key}=${value}`)
+		.join("&");
+
+	const paymentURL = `${process.env.ICICI_PAY_URL}${queryString}`;
+	res.json(qs);
+});
+
 const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 {
 	var request = req.body;
@@ -38,14 +98,14 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 
 	const queryParams1 =
 	{
-		merchantid: process.env.ICICI_MERCHANT_ID,
+		"merchantid": process.env.ICICI_MERCHANT_ID,
 		"mandatory fields": mandatoryFields,
 		"optional fields": "",
-		returnurl: `${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`,
+		"returnurl": `${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`,
 		"Reference No": referenceNo,
-		submerchantid: process.env.ICICI_SUB_MERCHANT_ID,
+		"submerchantid": process.env.ICICI_SUB_MERCHANT_ID,
 		"transaction amount": amount,
-		paymode: process.env.ICICI_PAYMODE
+		"paymode": process.env.ICICI_PAYMODE
 	};
 
 	const queryString1 = Object.entries(queryParams1)
@@ -58,14 +118,14 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 
 	const queryParams =
 	{
-		merchantid: process.env.ICICI_MERCHANT_ID,
+		"merchantid": process.env.ICICI_MERCHANT_ID,
 		"mandatory fields": encryptData(mandatoryFields),
 		"optional fields": "",
-		returnurl: encryptData(`${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`),
+		"returnurl": encryptData(`${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`),
 		"Reference No": encryptData(referenceNo),
-		submerchantid: encryptData(process.env.ICICI_SUB_MERCHANT_ID),
+		"submerchantid": encryptData(process.env.ICICI_SUB_MERCHANT_ID),
 		"transaction amount": encryptData(amount),
-		paymode: encryptData(process.env.ICICI_PAYMODE)
+		"paymode": encryptData(process.env.ICICI_PAYMODE)
 	};
 
 	const queryString = Object.entries(queryParams)
@@ -79,9 +139,10 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 const receivePaymentResponse = asyncHandler(async (req, res) =>
 {
 	res.json(req.body);
-	
+
 	// let receivedPaymentResponse = req.body;
 
+	// let ckscReferenceNo = receivePaymentResponse["ReferenceNo"];
 	// let responseCode = receivePaymentResponse["Response Code"];
 	// let iciciReferenceNo = receivePaymentResponse["Unique Ref Number"];
 	// let serviceTaxAmount = receivePaymentResponse["Service Tax Amount"];
@@ -93,18 +154,17 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 	// let tdr = receivePaymentResponse["TDR"];
 	// let paymentMode = receivePaymentResponse["Payment Mode"];
 	// let submerchantId = receivePaymentResponse["SubMerchantId"];
-	// let ckscReferenceNo = receivePaymentResponse["ReferenceNo"];
 	// let tps = receivePaymentResponse["TPS"];
 	// let id = receivePaymentResponse["ID"];
 	// let rs = receivePaymentResponse["RS"];
-	
+
 	// let transactionMessage = "Transaction Failed";
 
 	// if (responseCode == "E000")
 	// {
 	// 	transactionMessage = "Transaction successful";
 	// }
-	
+
 	// const paymentRequest = await ICICIPaymentRequest.find({ referenceNo: ckscReferenceNo });
 
 	// const paymentResponse = await PaymentResponse.create(
@@ -181,6 +241,5 @@ const generateEnhancedTimestampId = () =>
 
 module.exports =
 {
-	fetchPaymentRequestURL, receivePaymentResponse, verifyTransaction
+	fetchEncryptedRequestParams, fetchPaymentRequestURL, receivePaymentResponse, verifyTransaction
 };
-

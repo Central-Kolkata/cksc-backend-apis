@@ -2,43 +2,43 @@ const mongoose = require("mongoose");
 
 const iciciPaymentResponseSchema = mongoose.Schema(
 	{
-		transactionId:
+		ckscReferenceNo:
 		{
 			type: String
 		},
-		icaiMembershipNo:
+		responseCode:
 		{
 			type: String
 		},
-		ckscMembershipNo:
+		iciciReferenceNo:
 		{
 			type: String
 		},
-		transactionTimestamp:
+		serviceTaxAmount:
 		{
 			type: String
 		},
-		cardNumber:
+		processingFeeAmount:
 		{
 			type: String
 		},
-		surcharge:
+		totalAmount:
 		{
 			type: Number
 		},
-		scheme:
+		transactionAmount:
 		{
 			type: String
 		},
-		signature:
+		transactionDate:
 		{
 			type: String
 		},
-		amount:
+		interchangeValue:
 		{
 			type: Number
 		},
-		fCode:
+		tdr:
 		{
 			type: String
 		},
