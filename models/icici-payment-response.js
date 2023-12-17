@@ -42,51 +42,23 @@ const iciciPaymentResponseSchema = mongoose.Schema(
 		{
 			type: String
 		},
-		bankTransactionReference:
+		paymentMode:
 		{
 			type: String
 		},
-		ipgTransactionId:
+		submerchantId:
 		{
 			type: String
 		},
-		bankName:
+		tps:
 		{
 			type: String
 		},
-		mmpTransaction:
+		id:
 		{
 			type: String
 		},
-		discriminator:
-		{
-			type: String
-		},
-		authCode:
-		{
-			type: String
-		},
-		description:
-		{
-			type: String
-		},
-		transactionMessage:
-		{
-			type: String
-		},
-		udf1:
-		{
-			type: String
-		},
-		udf2:
-		{
-			type: String
-		},
-		udf3:
-		{
-			type: String
-		},
-		udf4:
+		rs:
 		{
 			type: String
 		}
@@ -95,4 +67,4 @@ const iciciPaymentResponseSchema = mongoose.Schema(
 		timestamps: true
 	});
 
-module.exports = mongoose.model("PaymentResponse", paymentResponseSchema);
+module.exports = mongoose.model("ICICIPaymentResponse", iciciPaymentResponseSchema);
