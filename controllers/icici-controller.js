@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const ICICIPaymentRequest = require("../models/icici-payment-request");
 const ICICIPaymentResponse = require("../models/icici-payment-response");
+const User = require("../models/user-model");
 const UserPayment = require("../models/user-payment");
 
 const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
@@ -128,8 +129,7 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 	}
 
 	const paymentRequest = await ICICIPaymentRequest.find({ referenceNo: ckscReferenceNo });
-
-	console.log("paymentRequest", paymentRequest);
+	await reduceThePendingAmount(totalAmount, paymentRequest[0].userId);
 
 	const paymentResponse = await ICICIPaymentResponse.create(
 		{
@@ -173,10 +173,22 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 		+ paymentRequest[0].mobile + "|"
 		+ userPaymentResponse._id.toString();
 
-	console.log(req.body);
-	console.log(queryString);
 	res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 });
+
+const reduceThePendingAmount = async (totalAmount, userId) =>
+{
+	const user = await User.findById(userId);
+
+	if (!user)
+	{
+		throw new Error("User Not found");
+	}
+
+	user.pendingAmount -= amountToReduce;
+
+	await user.save();
+};
 
 const verifyTransaction = asyncHandler(async (req, ckscResponse) =>
 {
