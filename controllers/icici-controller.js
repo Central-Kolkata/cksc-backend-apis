@@ -83,24 +83,26 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 {
 	let receivedPaymentResponse = req.body;
 
-	receivedPaymentResponse =
-	{
-		"ReferenceNo": "17027765402801658",
-		"Response Code": "E000",
-		"Unique Ref Number": "ICICI123456789",
-		"Service Tax Amount": "",
-		"Processing Fee Amount": "",
-		"Total Amount": "1000.00",
-		"Transaction Amount": "1000.00",
-		"Transaction Date": "2023-12-12",
-		"Interchange Value": "",
-		"TDR": "",
-		"Payment Mode": "Credit Card",
-		"SubMerchantId": "25",
-		"TPS": "",
-		"ID": "TXN12345",
-		"RS": "Successful"
-	};
+	res.json(receivedPaymentResponse);
+
+	// receivedPaymentResponse =
+	// {
+	// 	"ReferenceNo": "17027765402801658",
+	// 	"Response Code": "E000",
+	// 	"Unique Ref Number": "ICICI123456789",
+	// 	"Service Tax Amount": "",
+	// 	"Processing Fee Amount": "",
+	// 	"Total Amount": "1000.00",
+	// 	"Transaction Amount": "1000.00",
+	// 	"Transaction Date": "2023-12-12",
+	// 	"Interchange Value": "",
+	// 	"TDR": "",
+	// 	"Payment Mode": "Credit Card",
+	// 	"SubMerchantId": "25",
+	// 	"TPS": "",
+	// 	"ID": "TXN12345",
+	// 	"RS": "Successful"
+	// };
 
 	let ckscReferenceNo = receivedPaymentResponse["ReferenceNo"];
 	let responseCode = receivedPaymentResponse["Response Code"];
