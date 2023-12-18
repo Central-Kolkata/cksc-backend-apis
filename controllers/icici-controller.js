@@ -181,6 +181,7 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 
 	let transactionMessage = "Transaction Failed";
 	let isPaymentSuccessful = false;
+	let queryString = "";
 
 	// FAILURE Variables
 	let mandatoryFields;
@@ -213,7 +214,8 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 		optionalFields = receivedPaymentResponse["optional fields"];
 		rsv = receivedPaymentResponse["RSV"];
 
-		res.status(400).json({ error: responseCode, description: errorCodes[responseCode] });
+		queryString = isPaymentSuccessful + "|" + responseCode + "|" + errorCodes[responseCode];
+		res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 	}
 
 	const paymentRequest = await ICICIPaymentRequest.find({ referenceNo: ckscReferenceNo });
@@ -246,7 +248,7 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 			"paymentStatus": "Init -> " + transactionMessage
 		});
 
-	let queryString = isPaymentSuccessful + "|"
+	queryString = isPaymentSuccessful + "|"
 		+ paymentRequest[0].userId + "|"
 		+ paymentRequest[0].icaiMembershipNo + "|"
 		+ paymentRequest[0].ckscMembershipNo + "|"
