@@ -5,6 +5,7 @@ const ICICIPaymentRequest = require("../models/icici-payment-request");
 const ICICIPaymentResponse = require("../models/icici-payment-response");
 const User = require("../models/user-model");
 const UserPayment = require("../models/user-payment");
+const { response } = require("express");
 
 const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 {
@@ -84,8 +85,70 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 {
 	let receivedPaymentResponse = req.body;
 
+	const errorCodes =
+	{
+		"E000": "Received successful confirmation in real time for the transaction. Settlement process is initiated for the transaction.",
+		"E001": "Unauthorized Payment Mode",
+		"E002": "Unauthorized Key",
+		"E003": "Unauthorized Packet",
+		"E004": "Unauthorized Merchant",
+		"E005": "Unauthorized Return URL",
+		"E006": "Transaction is already paid",
+		"E007": "Transaction Failed",
+		"E008": "Failure from Third Party due to Technical Error",
+		"E009": "Bill Already Expired",
+		"E0031": "Mandatory fields coming from merchant are empty",
+		"E0032": "Mandatory fields coming from database are empty",
+		"E0033": "Payment mode coming from merchant is empty",
+		"E0034": "PG Reference number coming from merchant is empty",
+		"E0035": "Sub merchant id coming from merchant is empty",
+		"E0036": "Transaction amount coming from merchant is empty",
+		"E0037": "Payment mode coming from merchant is other than 0 to 9",
+		"E0038": "Transaction amount coming from merchant is more than 9 digit length",
+		"E0039": "Mandatory value Email in wrong format",
+		"E00310": "Mandatory value mobile number in wrong format",
+		"E00311": "Mandatory value amount in wrong format",
+		"E00312": "Mandatory value Pan card in wrong format",
+		"E00313": "Mandatory value Date in wrong format",
+		"E00314": "Mandatory value String in wrong format",
+		"E00315": "Optional value Email in wrong format",
+		"E00316": "Optional value mobile number in wrong format",
+		"E00317": "Optional value amount in wrong format",
+		"E00318": "Optional value pan card number in wrong format",
+		"E00319": "Optional value date in wrong format",
+		"E00320": "Optional value string in wrong format",
+		"E00321": "Request packet mandatory columns is not equal to mandatory columns set in enrolment or optional columns are not equal to optional columns length set in enrolment",
+		"E00322": "Reference Number Blank",
+		"E00323": "Mandatory Columns are Blank",
+		"E00324": "Merchant Reference Number and Mandatory Columns are Blank",
+		"E00325": "Merchant Reference Number Duplicate",
+		"E00326": "Sub merchant id coming from merchant is non numeric",
+		"E00327": "Cash Challan Generated",
+		"E00328": "Cheque Challan Generated",
+		"E00329": "NEFT Challan Generated",
+		"E00330": "Transaction Amount and Mandatory Transaction Amount mismatch in Request URL",
+		"E00331": "UPI Transaction Initiated Please Accept or Reject the Transaction",
+		"E00332": "Challan Already Generated, Please re-initiate with unique reference number",
+		"E00333": "Referer is null/invalid Referer",
+		"E00334": "Mandatory Parameters Reference No and Request Reference No parameter values are not matched",
+		"E00335": "Transaction Cancelled By User",
+		"E0801": "FAIL",
+		"E0802": "User Dropped",
+		"E0803": "Canceled by user",
+		"E0804": "User Request arrived but card brand not supported",
+		"E0805": "Checkout page rendered Card function not supported",
+		"E0806": "Forwarded / Exceeds withdrawal amount limit",
+		"E0807": "PG Fwd Fail / Issuer Authentication Server failure",
+		"E0808": "Session expiry / Failed Initiate Check, Card BIN not present",
+		"E0809": "Reversed / Expired Card",
+		"E0810": "Unable to Authorize",
+		"E0811": "Invalid Response Code or Guide received from Issuer",
+		"E0812": "Do not honor",
+		"E0813": "Invalid transaction",
+		"E0814": "Not Matched with the entered amount"
+	};
 
-	res.json(receivedPaymentResponse);
+	// res.json(receivedPaymentResponse);
 
 	// receivedPaymentResponse =
 	// {
@@ -106,29 +169,51 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 	// 	"RS": "Successful"
 	// };
 
-	let ckscReferenceNo = receivedPaymentResponse["ReferenceNo"];
 	let responseCode = receivedPaymentResponse["Response Code"];
-	let iciciReferenceNo = receivedPaymentResponse["Unique Ref Number"];
-	let serviceTaxAmount = receivedPaymentResponse["Service Tax Amount"];
-	let processingFeeAmount = receivedPaymentResponse["Processing Fee Amount"];
-	let totalAmount = receivedPaymentResponse["Total Amount"];
-	let transactionAmount = receivedPaymentResponse["Transaction Amount"];
-	let transactionDate = receivedPaymentResponse["Transaction Date"];
 	let interchangeValue = receivedPaymentResponse["Interchange Value"];
 	let tdr = receivedPaymentResponse["TDR"];
 	let paymentMode = receivedPaymentResponse["Payment Mode"];
 	let submerchantId = receivedPaymentResponse["SubMerchantId"];
-	let tps = receivedPaymentResponse["TPS"];
+	let ckscReferenceNo = receivedPaymentResponse["ReferenceNo"];
 	let id = receivedPaymentResponse["ID"];
 	let rs = receivedPaymentResponse["RS"];
+	let tps = receivedPaymentResponse["TPS"];
 
 	let transactionMessage = "Transaction Failed";
 	let isPaymentSuccessful = false;
+
+	// FAILURE Variables
+	let mandatoryFields;
+	let optionalFields;
+	let rsv;
+
+	// SUCCESS Variables
+	let iciciReferenceNo;
+	let serviceTaxAmount;
+	let processingFeeAmount;
+	let totalAmount;
+	let transactionAmount;
+	let transactionDate;
 
 	if (responseCode == "E000")
 	{
 		transactionMessage = "Transaction successful";
 		isPaymentSuccessful = true;
+
+		iciciReferenceNo = receivedPaymentResponse["Unique Ref Number"];
+		serviceTaxAmount = receivedPaymentResponse["Service Tax Amount"];
+		processingFeeAmount = receivedPaymentResponse["Processing Fee Amount"];
+		totalAmount = receivedPaymentResponse["Total Amount"];
+		transactionAmount = receivedPaymentResponse["Transaction Amount"];
+		transactionDate = receivedPaymentResponse["Transaction Date"];
+	}
+	else
+	{
+		mandatoryFields = receivedPaymentResponse["mandatory fields"];
+		optionalFields = receivedPaymentResponse["optional fields"];
+		rsv = receivedPaymentResponse["RSV"];
+
+		res.status(400).json({ error: responseCode, description: errorCodes[responseCode] });
 	}
 
 	const paymentRequest = await ICICIPaymentRequest.find({ referenceNo: ckscReferenceNo });
