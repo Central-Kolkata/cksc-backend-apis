@@ -74,8 +74,8 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 		.map(([key, value]) => `${key}=${value}`)
 		.join("&");
 
-	// const paymentURL = `${process.env.ICICI_PAY_URL}${queryString}`;
-	const paymentURL = `google.com`;
+	const paymentURL = `${process.env.ICICI_PAY_URL}${queryString}`;
+	// const paymentURL = `google.com`;
 	res.json(paymentURL);
 });
 
