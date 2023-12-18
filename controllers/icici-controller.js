@@ -176,7 +176,7 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 	res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 });
 
-const reduceThePendingAmount = async (totalAmount, userId) =>
+const reduceThePendingAmount = async (amountToReduce, userId) =>
 {
 	const user = await User.findById(userId);
 
