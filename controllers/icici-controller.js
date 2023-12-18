@@ -83,8 +83,6 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 {
 	let receivedPaymentResponse = req.body;
 
-	res.json(receivedPaymentResponse);
-
 	// receivedPaymentResponse =
 	// {
 	// 	"ReferenceNo": "17027765402801658",
