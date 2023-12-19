@@ -41,6 +41,18 @@ const iciciPaymentRequestSchema = mongoose.Schema(
 		referenceNo:
 		{
 			type: Number
+		},
+		paymentType:
+		{
+			type: String
+		},
+		paymentDescription:
+		{
+			type: String
+		},
+		paymentRemarks:
+		{
+			type: String
 		}
 	},
 	{

@@ -17,6 +17,8 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 	let mobile = request.mobile;
 	let address = request.address;
 	let pan = request.pan;
+	let selectedEvent = request.selectedEvent;
+	let remarks = request.remarks;
 
 	let amount = request.amount;
 	let referenceNo = generateEnhancedTimestampId(); // Will be used for reverifying a transaction
@@ -32,7 +34,10 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 			"address": address,
 			"pan": pan,
 			"amount": amount,
-			"referenceNo": referenceNo
+			"referenceNo": referenceNo,
+			"paymentType": "Event",
+			"paymentDescription": selectedEvent,
+			"paymentRemarks": remarks
 		});
 
 	let mandatoryFields = `${referenceNo}|${process.env.ICICI_SUB_MERCHANT_ID}|${amount}|${name}|${mobile}|${address}|${pan}|${email}`;
@@ -91,6 +96,8 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	let address = request.address;
 	let pan = request.pan;
 
+	let remarks = request.remarks;
+
 	let amount = request.amount;
 	let referenceNo = generateEnhancedTimestampId(); // Will be used for reverifying a transaction
 
@@ -105,7 +112,10 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 			"address": address,
 			"pan": pan,
 			"amount": amount,
-			"referenceNo": referenceNo
+			"referenceNo": referenceNo,
+			"paymentType": "Pending Dues",
+			"paymentDescription": "",
+			"paymentRemarks": remarks
 		});
 
 	let mandatoryFields = `${referenceNo}|${process.env.ICICI_SUB_MERCHANT_ID}|${amount}|${name}|${mobile}|${address}|${pan}|${email}`;
@@ -303,7 +313,10 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 			+ paymentRequest[0].name + "|"
 			+ paymentRequest[0].email + "|"
 			+ paymentRequest[0].mobile + "|"
-			+ paymentResponse._id.toString();
+			+ paymentResponse._id.toString() + "|"
+			+ paymentRequest[0].paymentType + "|"
+			+ paymentRequest[0].paymentDescription + "|"
+			+ paymentRequest[0].paymentRemarks;
 
 		res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 	}
@@ -494,7 +507,10 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 		+ paymentRequest[0].name + "|"
 		+ paymentRequest[0].email + "|"
 		+ paymentRequest[0].mobile + "|"
-		+ userPaymentResponse._id.toString();
+		+ userPaymentResponse._id.toString()
+		+ paymentRequest[0].paymentType + "|"
+		+ paymentRequest[0].paymentDescription + "|"
+		+ paymentRequest[0].paymentRemarks;
 
 	res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 });
