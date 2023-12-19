@@ -17,6 +17,8 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 	let mobile = request.mobile;
 	let address = request.address;
 	let pan = request.pan;
+
+	let paymentType = request.paymentType;
 	let selectedEvent = request.selectedEvent;
 	let remarks = request.remarks;
 
@@ -35,7 +37,7 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 			"pan": pan,
 			"amount": amount,
 			"referenceNo": referenceNo,
-			"paymentType": "Event",
+			"paymentType": paymentType,
 			"paymentDescription": selectedEvent,
 			"paymentRemarks": remarks
 		});
@@ -96,6 +98,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	let address = request.address;
 	let pan = request.pan;
 
+	let paymentType = request.paymentType;
 	let remarks = request.remarks;
 
 	let amount = request.amount;
@@ -113,7 +116,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 			"pan": pan,
 			"amount": amount,
 			"referenceNo": referenceNo,
-			"paymentType": "Pending Dues",
+			"paymentType": paymentType,
 			"paymentDescription": "",
 			"paymentRemarks": remarks
 		});
