@@ -32,6 +32,7 @@ app.use(`/api/atom`, require("./routes/atom-routes"));
 app.use(`/api/icici`, require("./routes/icici-routes"));
 app.use(`/api/sms`, require("./routes/sms-routes"));
 app.use(`/api/whatsapp`, require("./routes/whatsapp-routes"));
+app.use(`/api/reports`, require("./routes/reports-routes"));
 
 app.use(errorHandler);
 
