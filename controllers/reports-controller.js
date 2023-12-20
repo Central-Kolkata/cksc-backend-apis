@@ -103,7 +103,30 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
         </table>
     `;
 
-	res.send(htmlTable);
+	// Calculate the grand total
+	let grandTotal = allPayments.reduce((total, payment) => total + payment.amount, 0);
+
+	// HTML for the grand total
+	const grandTotalHtml = `<p style="font-family: 'Calibri', sans-serif; font-size: 18px; font-weight: bold;">Grand Total: ${grandTotal}</p>`;
+
+	// Combine the grand total and the table
+	const htmlContent = `
+        <style>
+            table, th, td {
+                font-family: 'Calibri', sans-serif;
+                border-collapse: collapse;
+            }
+            th, td {
+                padding: 8px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+        </style>
+        ${grandTotalHtml}
+        ${htmlTable}
+    `;
+
+	res.send(htmlContent);
 });
 
 const fetchAllPaymentDetailsJSON = asyncHandler(async (req, res) =>
