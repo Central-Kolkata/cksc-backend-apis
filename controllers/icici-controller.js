@@ -104,6 +104,30 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	let amount = request.amount;
 	let referenceNo = generateEnhancedTimestampId(); // Will be used for reverifying a transaction
 
+	let user = await User.findById(userId);
+
+	if (user)
+	{
+		let isModified = false;
+
+		if (user.email !== email)
+		{
+			user.email = email;
+			isModified = true;
+		}
+
+		if (user.mobile !== mobile)
+		{
+			user.mobile = mobile;
+			isModified = true;
+		}
+
+		if (isModified)
+		{
+			await user.save();
+		}
+	}
+
 	await ICICIPaymentRequest.create(
 		{
 			"userId": userId,
