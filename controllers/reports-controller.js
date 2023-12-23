@@ -27,9 +27,9 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
 				iciciReferenceNo: paymentResponse.iciciReferenceNo,
 				transactionDate: paymentResponse.transactionDate,
 				paymentMode: paymentResponse.paymentMode,
-				paymentType: paymentRequest.paymentType || '-NA-',
-				paymentDescription: paymentRequest.paymentDescription || '-NA-',
-				paymentRemarks: paymentRequest.paymentRemarks || '-NA-'
+				paymentType: paymentRequest.paymentType || 'NA',
+				paymentDescription: paymentRequest.paymentDescription || 'NA',
+				paymentRemarks: paymentRequest.paymentRemarks || 'NA'
 			});
 		}
 	}
