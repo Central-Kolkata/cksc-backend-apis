@@ -41,9 +41,9 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
 		const dateA = new Date(a.transactionDate);
 		const dateB = new Date(b.transactionDate);
 
-		// Compare dates first
-		if (dateA < dateB) return -1;
-		if (dateA > dateB) return 1;
+		// Compare dates first, in descending order
+		if (dateA > dateB) return -1;
+		if (dateA < dateB) return 1;
 
 		// If dates are equal, sort by paymentType
 		return a.paymentType.localeCompare(b.paymentType);
