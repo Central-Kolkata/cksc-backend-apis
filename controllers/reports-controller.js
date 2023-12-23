@@ -37,10 +37,15 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
 	// Sort the combined data
 	allPayments.sort((a, b) =>
 	{
-		if (a.paymentType === b.paymentType)
-		{
-			return new Date(a.transactionDate) - new Date(b.transactionDate);
-		}
+		// Convert transaction dates to Date objects for comparison
+		const dateA = new Date(a.transactionDate);
+		const dateB = new Date(b.transactionDate);
+
+		// Compare dates first
+		if (dateA < dateB) return -1;
+		if (dateA > dateB) return 1;
+
+		// If dates are equal, sort by paymentType
 		return a.paymentType.localeCompare(b.paymentType);
 	});
 
