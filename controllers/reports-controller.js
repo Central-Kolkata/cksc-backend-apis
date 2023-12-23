@@ -37,9 +37,16 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
 	// Sort the combined data
 	allPayments.sort((a, b) =>
 	{
+		// Function to convert date string to a Date object
+		const parseDate = (dateStr) =>
+		{
+			const parts = dateStr.split(/[- :]/);
+			return new Date(parts[2], parts[1] - 1, parts[0], parts[3], parts[4], parts[5]);
+		};
+
 		// Convert transaction dates to Date objects for comparison
-		const dateA = new Date(a.transactionDate);
-		const dateB = new Date(b.transactionDate);
+		const dateA = parseDate(a.transactionDate);
+		const dateB = parseDate(b.transactionDate);
 
 		// Compare dates first, in descending order
 		if (dateA > dateB) return -1;
