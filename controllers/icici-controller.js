@@ -397,7 +397,7 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 
 const activateTheUser = async (ckscReferenceNo) =>
 {
-	const user = await User.find({ "ckscMembershipNo": ckscReferenceNo });
+	const user = await User.findOne({ "ckscMembershipNo": ckscReferenceNo });
 
 	if (!user)
 	{
