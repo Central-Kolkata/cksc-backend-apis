@@ -4,6 +4,65 @@ const ICICIPaymentResponse = require("../models/icici-payment-response");
 const User = require("../models/user-model");
 const UserPayment = require("../models/user-payment");
 
+const fetchAllUsers = asyncHandler(async (req, res) =>
+{
+	const allUsers = await User.find({});
+	let serialNumber = 1; // Initialize serial number
+	let tableHtml = `
+        <style>
+            table, th, td {
+                font-family: 'Calibri', sans-serif; /* Set the font style to Calibri */
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+            th, td {
+                padding: 5px;
+                text-align: left;
+            }
+        </style>
+        <table>
+            <thead>
+                <tr>
+                    <th>S.N.</th>
+                    <th>Name</th>
+                    <th>ICAI Membership No</th>
+                    <th>CKSC Membership No</th>
+                    <th>Pending Amount</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+	for (const user of allUsers)
+	{
+		// Format createdAt and updatedAt to include time
+		const formattedCreatedAt = user.createdAt.toISOString().replace('T', ' ').slice(0, 19);
+		const formattedUpdatedAt = user.updatedAt.toISOString().replace('T', ' ').slice(0, 19);
+
+		tableHtml += `
+            <tr>
+                <td>${serialNumber++}</td>
+                <td>${user.name}</td>
+                <td>${user.icaiMembershipNo}</td>
+                <td>${user.ckscMembershipNo}</td>
+                <td>${user.pendingAmount}</td>
+                <td>${user.mobile}</td>
+                <td>${user.email}</td>
+                <td>${formattedCreatedAt}</td>
+                <td>${formattedUpdatedAt}</td>
+            </tr>
+        `;
+	}
+
+	tableHtml += `</tbody></table>`;
+
+	res.send(tableHtml);
+});
+
 const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
 {
 	const paymentResponses = await ICICIPaymentResponse.find({ responseCode: "E000" });
@@ -172,8 +231,7 @@ const fetchAllPaymentDetailsJSON = asyncHandler(async (req, res) =>
 	res.json(allPaymentDetails);
 });
 
-
 module.exports =
 {
-	fetchAllPaymentDetails
+	fetchAllUsers, fetchAllPaymentDetails
 };

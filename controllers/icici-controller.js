@@ -25,19 +25,6 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 	let amount = request.amount;
 	let referenceNo = generateEnhancedTimestampId(); // Will be used for reverifying a transaction
 
-	if (paymentType == "New Member")
-	{
-		await User.create(
-			{
-				"name": name,
-				"icaiMembershipNo": icaiMembershipNo,
-				"ckscMembershipNo": "CKSC",
-				"pendingAmount": 0,
-				"mobile": mobile,
-				"email": email
-			});
-	}
-
 	await ICICIPaymentRequest.create(
 		{
 			"userId": icaiMembershipNo,
@@ -206,6 +193,7 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 	try
 	{
 		let receivedPaymentResponse = req.body;
+		console.log("receivedPaymentResponse", receivedPaymentResponse);
 
 		const errorCodes =
 		{
@@ -339,6 +327,19 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 				"id": id,
 				"rs": rs
 			});
+
+		if (paymentType == "New Member")
+		{
+			await User.create(
+				{
+					"name": name,
+					"icaiMembershipNo": icaiMembershipNo,
+					"ckscMembershipNo": "CKSC",
+					"pendingAmount": 0,
+					"mobile": mobile,
+					"email": email
+				});
+		}
 
 		queryString = isPaymentSuccessful + "|"
 			+ paymentRequest[0].userId + "|"
