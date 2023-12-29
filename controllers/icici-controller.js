@@ -6,6 +6,32 @@ const ICICIPaymentResponse = require("../models/icici-payment-response");
 const User = require("../models/user-model");
 const UserPayment = require("../models/user-payment");
 
+const getNextCKSCMembershipNo = async () =>
+{
+	let maxNumber = 0;
+
+	// Fetch all users
+	const allUsers = await User.find({});
+
+	allUsers.forEach(user =>
+	{
+		if (user.ckscMembershipNo && user.ckscMembershipNo.startsWith('CKSC-'))
+		{
+			const numberPart = parseInt(user.ckscMembershipNo.split('-')[1]);
+
+			if (!isNaN(numberPart))
+			{
+				maxNumber = Math.max(maxNumber, numberPart);
+			}
+		}
+	});
+
+	// Construct the new ckscMembershipNo with the next available number
+	const nextCKSCMembershipNo = `CKSC-${maxNumber + 1}`;
+
+	return nextCKSCMembershipNo;
+};
+
 const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 {
 	var request = req.body;
@@ -24,6 +50,20 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 
 	let amount = request.amount;
 	let referenceNo = generateEnhancedTimestampId(); // Will be used for reverifying a transaction
+
+	if (paymentType == "New Member")
+	{
+		await User.create(
+			{
+				"name": name,
+				"icaiMembershipNo": icaiMembershipNo,
+				"ckscMembershipNo": referenceNo,
+				"pendingAmount": 0,
+				"mobile": mobile,
+				"email": email,
+				"active": false
+			});
+	}
 
 	await ICICIPaymentRequest.create(
 		{
@@ -193,7 +233,6 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 	try
 	{
 		let receivedPaymentResponse = req.body;
-		console.log("receivedPaymentResponse", receivedPaymentResponse);
 
 		const errorCodes =
 		{
@@ -268,13 +307,14 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 		let rs = receivedPaymentResponse["RS"];
 		let tps = receivedPaymentResponse["TPS"];
 
+		let mandatoryFields = receivedPaymentResponse["mandatory fields"];
+		let optionalFields = receivedPaymentResponse["optional fields"];
+
 		let transactionMessage = "Transaction Failed";
 		let isPaymentSuccessful = false;
 		let queryString = "";
 
 		// FAILURE Variables
-		let mandatoryFields;
-		let optionalFields;
 		let rsv;
 
 		// SUCCESS Variables
@@ -296,11 +336,11 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 			totalAmount = receivedPaymentResponse["Total Amount"];
 			transactionAmount = receivedPaymentResponse["Transaction Amount"];
 			transactionDate = receivedPaymentResponse["Transaction Date"];
+
+			await activateTheUser(ckscReferenceNo);
 		}
 		else
 		{
-			mandatoryFields = receivedPaymentResponse["mandatory fields"];
-			optionalFields = receivedPaymentResponse["optional fields"];
 			rsv = receivedPaymentResponse["RSV"];
 
 			queryString = isPaymentSuccessful + "|" + responseCode + "|" + errorCodes[responseCode];
@@ -328,19 +368,6 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 				"rs": rs
 			});
 
-		if (paymentType == "New Member")
-		{
-			await User.create(
-				{
-					"name": name,
-					"icaiMembershipNo": icaiMembershipNo,
-					"ckscMembershipNo": "CKSC",
-					"pendingAmount": 0,
-					"mobile": mobile,
-					"email": email
-				});
-		}
-
 		queryString = isPaymentSuccessful + "|"
 			+ paymentRequest[0].userId + "|"
 			+ paymentRequest[0].icaiMembershipNo + "|"
@@ -367,6 +394,21 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 		res.json(ex);
 	}
 });
+
+const activateTheUser = async (ckscReferenceNo) =>
+{
+	const user = await User.find({ "ckscMembershipNo": ckscReferenceNo });
+
+	if (!user)
+	{
+		throw new Error("User Not found");
+	}
+
+	user.ckscMembershipNo = await getNextCKSCMembershipNo();
+	user.active = true;
+
+	await user.save();
+};
 
 const receivePaymentResponse = asyncHandler(async (req, res) =>
 {

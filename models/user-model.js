@@ -27,6 +27,10 @@ const userSchema = mongoose.Schema(
 		email:
 		{
 			type: String
+		},
+		active:
+		{
+			type: Boolean
 		}
 	},
 	{
