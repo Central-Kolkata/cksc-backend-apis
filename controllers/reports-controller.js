@@ -11,26 +11,28 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
 
 	for (const paymentResponse of paymentResponses)
 	{
-		const paymentRequest = await ICICIPaymentRequest.findOne({
-			referenceNo: paymentResponse.ckscReferenceNo
-		});
+		const paymentRequest = await ICICIPaymentRequest.findOne(
+			{
+				referenceNo: paymentResponse.ckscReferenceNo
+			});
 
 		if (paymentRequest)
 		{
-			allPayments.push({
-				icaiMembershipNo: paymentRequest.icaiMembershipNo,
-				name: paymentRequest.name,
-				email: paymentRequest.email,
-				mobile: paymentRequest.mobile,
-				amount: paymentRequest.amount,
-				referenceNo: paymentRequest.referenceNo,
-				iciciReferenceNo: paymentResponse.iciciReferenceNo,
-				transactionDate: paymentResponse.transactionDate,
-				paymentMode: paymentResponse.paymentMode,
-				paymentType: paymentRequest.paymentType || 'NA',
-				paymentDescription: paymentRequest.paymentDescription || 'NA',
-				paymentRemarks: paymentRequest.paymentRemarks || 'NA'
-			});
+			allPayments.push(
+				{
+					icaiMembershipNo: paymentRequest.icaiMembershipNo,
+					name: paymentRequest.name,
+					email: paymentRequest.email,
+					mobile: paymentRequest.mobile,
+					amount: paymentRequest.amount,
+					referenceNo: paymentRequest.referenceNo,
+					iciciReferenceNo: paymentResponse.iciciReferenceNo,
+					transactionDate: paymentResponse.transactionDate,
+					paymentMode: paymentResponse.paymentMode,
+					paymentType: paymentRequest.paymentType || 'NA',
+					paymentDescription: paymentRequest.paymentDescription || 'NA',
+					paymentRemarks: paymentRequest.paymentRemarks || 'NA'
+				});
 		}
 	}
 

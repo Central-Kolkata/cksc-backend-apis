@@ -25,6 +25,19 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 	let amount = request.amount;
 	let referenceNo = generateEnhancedTimestampId(); // Will be used for reverifying a transaction
 
+	if (paymentType == "New Member")
+	{
+		await User.create(
+			{
+				"name": name,
+				"icaiMembershipNo": icaiMembershipNo,
+				"ckscMembershipNo": "CKSC",
+				"pendingAmount": pendingAmount,
+				"mobile": mobile,
+				"email": email
+			});
+	}
+
 	await ICICIPaymentRequest.create(
 		{
 			"userId": icaiMembershipNo,
