@@ -325,6 +325,8 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 		let transactionAmount;
 		let transactionDate;
 
+		let newCKSCMembershipNo = await getNextCKSCMembershipNo();
+
 		if (responseCode == "E000")
 		{
 			transactionMessage = "Transaction successful";
@@ -337,7 +339,7 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 			transactionAmount = receivedPaymentResponse["Transaction Amount"];
 			transactionDate = receivedPaymentResponse["Transaction Date"];
 
-			await activateTheUser(ckscReferenceNo);
+			await activateTheUser(ckscReferenceNo, newCKSCMembershipNo);
 		}
 		else
 		{
@@ -371,7 +373,7 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 		queryString = isPaymentSuccessful + "|"
 			+ paymentRequest[0].userId + "|"
 			+ paymentRequest[0].icaiMembershipNo + "|"
-			+ paymentRequest[0].ckscMembershipNo + "|"
+			+ newCKSCMembershipNo + "|"
 			+ ckscReferenceNo + "|"
 			+ iciciReferenceNo + "|"
 			+ transactionDate + "|"
