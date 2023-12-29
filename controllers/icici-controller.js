@@ -32,7 +32,7 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 				"name": name,
 				"icaiMembershipNo": icaiMembershipNo,
 				"ckscMembershipNo": "CKSC",
-				"pendingAmount": pendingAmount,
+				"pendingAmount": 0,
 				"mobile": mobile,
 				"email": email
 			});
