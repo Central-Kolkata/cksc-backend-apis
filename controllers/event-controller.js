@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Venue = require("../models/venue-model");
 const Event = require("../models/event-model"); // Ensure you have an Event model similar to Venue
+const EventRegistration = require("../models/event-registration-model"); // Ensure you have an Event model similar to Venue
 const axios = require("axios");
 
 const fetchVenues = asyncHandler(async (req, res) =>
@@ -49,7 +50,7 @@ const deleteVenue = asyncHandler(async (req, res) =>
 // Fetch all events
 const fetchEvents = asyncHandler(async (req, res) =>
 {
-	const events = await Event.find();
+	const events = await Event.find().sort({ 'eventStartDate': -1 });
 	res.status(200).json({ events });
 });
 
@@ -77,17 +78,44 @@ const updateEvent = asyncHandler(async (req, res) =>
 const deleteEvent = asyncHandler(async (req, res) =>
 {
 	const event = await Event.findById(req.params.id);
+
 	if (!event)
 	{
 		res.status(400);
 		throw new Error("Event not found");
 	}
+
 	await event.remove();
+
 	res.status(200).json({ message: "Event Deleted Successfully!" });
+});
+
+const register = asyncHandler(async (req, res) =>
+{
+	const { userId, eventId } = req.body;
+
+	// Check if the user has already registered for this event
+	const existingRegistration = await EventRegistration.findOne(
+		{
+			userId: userId,
+			eventId: eventId,
+			status: 'confirmed'
+		});
+
+	if (existingRegistration) 
+	{
+		return res.status(400).json({ message: "User has already registered for this event." });
+	}
+
+	// Proceed to create a new event registration
+	await EventRegistration.create(req.body);
+
+	res.status(201).json({ message: "Event Registration Successful!" });
 });
 
 module.exports =
 {
 	fetchVenues, createVenue, updateVenue, deleteVenue,
-	fetchEvents, createEvent, updateEvent, deleteEvent
+	fetchEvents, createEvent, updateEvent, deleteEvent,
+	register
 };
