@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const asyncHandler = require("express-async-handler");
 const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
@@ -479,27 +480,6 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 		"E0814": "Not Matched with the entered amount"
 	};
 
-	// res.json(receivedPaymentResponse);
-
-	// receivedPaymentResponse =
-	// {
-	// 	"ReferenceNo": "17027765402801658",
-	// 	"Response Code": "E000",
-	// 	"Unique Ref Number": "ICICI123456789",
-	// 	"Service Tax Amount": "",
-	// 	"Processing Fee Amount": "",
-	// 	"Total Amount": "1000.00",
-	// 	"Transaction Amount": "1000.00",
-	// 	"Transaction Date": "2023-12-12",
-	// 	"Interchange Value": "",
-	// 	"TDR": "",
-	// 	"Payment Mode": "Credit Card",
-	// 	"SubMerchantId": "25",
-	// 	"TPS": "",
-	// 	"ID": "TXN12345",
-	// 	"RS": "Successful"
-	// };
-
 	let responseCode = receivedPaymentResponse["Response Code"];
 	let interchangeValue = receivedPaymentResponse["Interchange Value"];
 	let tdr = receivedPaymentResponse["TDR"];
@@ -644,7 +624,34 @@ const generateEnhancedTimestampId = () =>
 	return `${timestamp}${randomBits}`;
 };
 
+const migrateData = async () =>
+{
+	const userPayments = await UserPayment.aggregate([
+		{
+			$group: {
+				_id: { userId: "$userId", paymentRequestId: "$paymentRequestId", paymentResponseId: "$paymentResponseId" },
+				ids: { $push: "$_id" },
+				count: { $sum: 1 }
+			}
+		},
+		{
+			$match: {
+				count: { $gt: 1 }
+			}
+		}
+	]);
+
+	for (const group of userPayments)
+	{
+		// Skip the first element in the array and delete the rest
+		for (let i = 1; i < group.ids.length; i++)
+		{
+			await UserPayment.deleteOne({ _id: group.ids[i] });
+		}
+	}
+};
+
 module.exports =
 {
-	fetchOneTimePaymentRequestURL, fetchPaymentRequestURL, receiveOneTimePaymentResponse, receivePaymentResponse, verifyTransaction
+	fetchOneTimePaymentRequestURL, fetchPaymentRequestURL, receiveOneTimePaymentResponse, receivePaymentResponse, verifyTransaction, migrateData
 };

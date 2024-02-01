@@ -31,6 +31,12 @@ const userSchema = mongoose.Schema(
 		active:
 		{
 			type: Boolean
+		},
+		type:
+		{
+			type: String,
+			enum: ['registered', 'unregistered', 'pendingForApproval', 'approved', 'onetime'],
+			default: 'registered'
 		}
 	},
 	{

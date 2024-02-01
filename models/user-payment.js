@@ -18,6 +18,17 @@ const userPaymentSchema = mongoose.Schema(
 			type: Schema.Types.ObjectId,
 			ref: "PaymentResponse"
 		},
+		iciciPaymentRequestId:
+		{
+			type: Schema.Types.ObjectId,
+			ref: "ICICIPaymentRequest"
+		},
+		iciciPaymentResponseId:
+		{
+			type: Schema.Types.ObjectId,
+			ref: "ICICIPaymentResponse"
+		},
+
 		paymentStatus:
 		{
 			type: String
