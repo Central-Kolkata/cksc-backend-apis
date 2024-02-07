@@ -35,7 +35,7 @@ const userSchema = mongoose.Schema(
 		type:
 		{
 			type: String,
-			enum: ['registered', 'unregistered', 'pendingForApproval', 'approved', 'onetime'],
+			enum: ['registered', 'unregistered', 'pendingForApproval', 'approved', 'onetime', 'event'],
 			default: 'registered'
 		}
 	},

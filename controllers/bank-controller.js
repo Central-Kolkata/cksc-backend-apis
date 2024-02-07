@@ -56,16 +56,20 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 	// Generate unique reference number
 	const referenceNo = generateEnhancedTimestampId();
 
+	let newUser = null;
+
 	// Handle new member creation for one-time payments
-	if (isOneTimePayment && paymentType === "New Member")
+	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event"))
 	{
-		await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, referenceNo);
+		newUser = await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, referenceNo, paymentType);
 	}
+
+	const effectiveUserId = newUser ? newUser.id : userId;
 
 	// Common ICICIPaymentRequest creation logic
 	await ICICIPaymentRequest.create(
 		{
-			userId: isOneTimePayment ? icaiMembershipNo : userId,
+			userId: effectiveUserId,
 			icaiMembershipNo, name, email, mobile, address, pan,
 			amount, referenceNo, paymentType,
 			paymentDescription: isOneTimePayment ? selectedEvent : "",
@@ -81,13 +85,17 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 });
 
 // Function to handle new member creation
-const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo) =>
+const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType) =>
 {
-	await User.create(
+	const type = paymentType === "Event" ? "event" : "pendingForApproval";
+
+	const newUser = await User.create(
 		{
 			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: 0,
-			mobile, email, active: false
+			mobile, email, active: false, type
 		});
+
+	return newUser;
 };
 
 // Function to construct the payment URL
