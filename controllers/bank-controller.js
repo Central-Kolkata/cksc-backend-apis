@@ -164,9 +164,9 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) => fetchPaym
 const fetchPaymentRequestURL = asyncHandler(async (req, res) => fetchPaymentRequest(req, res));
 
 const receivePaymentResponse = asyncHandler(async (req, res) => handlePaymentResponse(req, res));
-const receiveOneTimePaymentResponse = asyncHandler(async (req, res) => handlePaymentResponse(req, res));
+const receiveOneTimePaymentResponse = asyncHandler(async (req, res) => handlePaymentResponse(req, res, true));
 
-const handlePaymentResponse = asyncHandler(async (req, res) => 
+const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = false) => 
 {
 	try 
 	{
@@ -223,8 +223,11 @@ const handlePaymentResponse = asyncHandler(async (req, res) =>
 
 		if (isPaymentSuccessful) 
 		{
-			// await activateTheUser(ckscReferenceNo); // Assuming activateTheUser function exists
-			// await reduceThePendingAmount(totalAmount, paymentRequest[0].userId);
+			if (isOneTimePayment)
+			{
+				await activateTheUser(ckscReferenceNo); // Assuming activateTheUser function exists
+				await reduceThePendingAmount(totalAmount, paymentRequest[0].userId);
+			}
 		}
 
 		const userPaymentResponseDetails =
