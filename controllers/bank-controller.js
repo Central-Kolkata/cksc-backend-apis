@@ -148,7 +148,7 @@ const registerOneTimeUser = asyncHandler(async (req, res) =>
 		{
 			eventId: selectedEvent, // Assuming this is the ObjectId of the event
 			userId: newUser._id, // Use _id for MongoDB ObjectId reference
-			transactionRefNo: referenceNo,
+			transactionRefNo: "",
 			amount: amount,
 			paymentStatus: 'unpaid', // Assuming the payment has not been completed yet
 			// Set other fields as needed
