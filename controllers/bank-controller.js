@@ -44,24 +44,24 @@ const getNextCKSCMembershipNo = async () =>
 	return (`CKSC-${maxNumber + 1}`);
 };
 
-const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, remarks = "") =>
+const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, remarks = "", amount = 0) =>
 {
 	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event"))
 	{
-		return await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, referenceNo, paymentType);
+		return await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount);
 	}
 
 	return null;
 };
 
 // Function to handle new member creation
-const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType) =>
+const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount = 0) =>
 {
 	const type = paymentType === "Event" ? "event" : "pendingForApproval";
 
 	const newUser = await User.create(
 		{
-			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: 0,
+			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: amount,
 			mobile, email, active: false, type
 		});
 
@@ -81,7 +81,7 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 	const referenceNo = generateEnhancedTimestampId();
 
 	// Handle new member creation for one-time payments, if necessary
-	const newUser = await createNewMemberIfNeeded(isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo);
+	const newUser = await createNewMemberIfNeeded(isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, amount);
 
 	const effectiveUserId = newUser ? newUser.id : userId;
 
@@ -134,7 +134,7 @@ const registerOneTimeUser = asyncHandler(async (req, res) =>
 	} = request;
 
 	// Generate unique reference number
-	const newUser = await createNewMemberIfNeeded(true, paymentType, name, icaiMembershipNo, mobile, email, "", remarks);
+	const newUser = await createNewMemberIfNeeded(true, paymentType, name, icaiMembershipNo, mobile, email, "", remarks, amount);
 
 	// Check if newUser was successfully created
 	if (!newUser)
