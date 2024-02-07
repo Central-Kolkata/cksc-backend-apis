@@ -44,6 +44,12 @@ const getNextCKSCMembershipNo = async () =>
 	return (`CKSC-${maxNumber + 1}`);
 };
 
+const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) => fetchPaymentRequest(req, res, true));
+const fetchPaymentRequestURL = asyncHandler(async (req, res) => fetchPaymentRequest(req, res));
+
+const receiveOneTimePaymentResponse = asyncHandler(async (req, res) => handlePaymentResponse(req, res, true));
+const receivePaymentResponse = asyncHandler(async (req, res) => handlePaymentResponse(req, res));
+
 const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, remarks = "", amount = 0) =>
 {
 	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event"))
@@ -160,12 +166,6 @@ const registerOneTimeUser = asyncHandler(async (req, res) =>
 	res.status(201).json(eventRegistration);
 });
 
-const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) => fetchPaymentRequest(req, res, true));
-const fetchPaymentRequestURL = asyncHandler(async (req, res) => fetchPaymentRequest(req, res));
-
-const receivePaymentResponse = asyncHandler(async (req, res) => handlePaymentResponse(req, res));
-const receiveOneTimePaymentResponse = asyncHandler(async (req, res) => handlePaymentResponse(req, res, true));
-
 const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = false) => 
 {
 	try 
@@ -225,16 +225,16 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 		{
 			if (!isOneTimePayment)
 			{
-				await activateTheUser(ckscReferenceNo); // Assuming activateTheUser function exists
-				await reduceThePendingAmount(totalAmount, paymentRequest[0].userId);
+				// await activateTheUser(ckscReferenceNo); // Assuming activateTheUser function exists
+				await reduceThePendingAmount(transactionAmount, paymentRequest[0].userId);
 			}
 		}
 
 		const userPaymentResponseDetails =
 		{
 			userId: paymentRequest[0].userId,
-			paymentRequestId: paymentRequest[0]._id,
-			paymentResponseId: paymentResponse._id,
+			iciciPaymentRequestId: paymentRequest[0]._id,
+			iciciPaymentResponseId: paymentResponse._id,
 			paymentStatus: `Init -> ${isPaymentSuccessful ? "Transaction successful" : "Transaction Failed"}`
 		};
 
