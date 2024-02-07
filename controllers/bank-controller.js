@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const ICICIPaymentRequest = require("../models/icici-payment-request");
 const ICICIPaymentResponse = require("../models/icici-payment-response");
+const EventRegistration = require("../models/event-registration-model");
 const User = require("../models/user-model");
 const UserPayment = require("../models/user-payment");
 const { NotFoundError } = require("../middlewares/errors");
@@ -43,26 +44,44 @@ const getNextCKSCMembershipNo = async () =>
 	return (`CKSC-${maxNumber + 1}`);
 };
 
+const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, remarks = "") =>
+{
+	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event"))
+	{
+		return await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, referenceNo, paymentType);
+	}
+
+	return null;
+};
+
+// Function to handle new member creation
+const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType) =>
+{
+	const type = paymentType === "Event" ? "event" : "pendingForApproval";
+
+	const newUser = await User.create(
+		{
+			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: 0,
+			mobile, email, active: false, type
+		});
+
+	return newUser;
+};
+
 // Unified function to handle both payment request scenarios
 const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = false) =>
 {
 	const request = req.body;
-	const
-		{
-			userId, icaiMembershipNo, name, email, mobile, address, pan,
-			paymentType, remarks, amount, selectedEvent = ""
-		} = request;
+	const {
+		userId, icaiMembershipNo, name, email, mobile, address, pan,
+		paymentType, remarks, amount, selectedEvent = ""
+	} = request;
 
 	// Generate unique reference number
 	const referenceNo = generateEnhancedTimestampId();
 
-	let newUser = null;
-
-	// Handle new member creation for one-time payments
-	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event"))
-	{
-		newUser = await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, referenceNo, paymentType);
-	}
+	// Handle new member creation for one-time payments, if necessary
+	const newUser = await createNewMemberIfNeeded(isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo);
 
 	const effectiveUserId = newUser ? newUser.id : userId;
 
@@ -83,20 +102,6 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 
 	res.json(paymentURL);
 });
-
-// Function to handle new member creation
-const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType) =>
-{
-	const type = paymentType === "Event" ? "event" : "pendingForApproval";
-
-	const newUser = await User.create(
-		{
-			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: 0,
-			mobile, email, active: false, type
-		});
-
-	return newUser;
-};
 
 // Function to construct the payment URL
 const constructPaymentURL = (referenceNo, amount, name, mobile, address, pan, email, returnUrl) =>
@@ -119,6 +124,41 @@ const constructPaymentURL = (referenceNo, amount, name, mobile, address, pan, em
 
 	return `${process.env.ICICI_PAY_URL}${queryString}`;
 };
+
+const registerOneTimeUser = asyncHandler(async (req, res) =>
+{
+	const request = req.body;
+	const {
+		icaiMembershipNo, name, email, mobile, address, pan,
+		paymentType, remarks, amount, selectedEvent
+	} = request;
+
+	// Generate unique reference number
+	const newUser = await createNewMemberIfNeeded(true, paymentType, name, icaiMembershipNo, mobile, email, "", remarks);
+
+	// Check if newUser was successfully created
+	if (!newUser)
+	{
+		// Handle the case where user creation failed
+		return res.status(400).json({ message: "Failed to create new user" });
+	}
+
+	// Create event registration for the new user
+	const eventRegistration = new EventRegistration(
+		{
+			eventId: selectedEvent, // Assuming this is the ObjectId of the event
+			userId: newUser._id, // Use _id for MongoDB ObjectId reference
+			transactionRefNo: referenceNo,
+			amount: amount,
+			paymentStatus: 'unpaid', // Assuming the payment has not been completed yet
+			// Set other fields as needed
+		});
+
+	await eventRegistration.save();
+
+	// Send response back with event registration details
+	res.status(201).json(eventRegistration);
+});
 
 const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) => fetchPaymentRequest(req, res, true));
 const fetchPaymentRequestURL = asyncHandler(async (req, res) => fetchPaymentRequest(req, res));
@@ -318,11 +358,6 @@ const reduceThePendingAmount = async (amountToReduce, userId) =>
 	await user.save();
 };
 
-const verifyTransaction = asyncHandler(async (req, ckscResponse) =>
-{
-	// Merchant ID, Reference Number needed
-});
-
 const encryptData = ((plainText, outputEncoding = "base64") =>
 {
 	const cipher = crypto.createCipheriv("aes-128-ecb", process.env.ICICI_AES_ENCRYPTION_KEY, null);
@@ -350,5 +385,5 @@ const generateEnhancedTimestampId = () =>
 
 module.exports =
 {
-	fetchOneTimePaymentRequestURL, fetchPaymentRequestURL, receiveOneTimePaymentResponse, receivePaymentResponse, verifyTransaction, getNextCKSCMembershipNo
+	fetchOneTimePaymentRequestURL, fetchPaymentRequestURL, receiveOneTimePaymentResponse, receivePaymentResponse, getNextCKSCMembershipNo, registerOneTimeUser
 };

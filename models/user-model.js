@@ -37,6 +37,10 @@ const userSchema = mongoose.Schema(
 			type: String,
 			enum: ['registered', 'unregistered', 'pendingForApproval', 'approved', 'onetime', 'event'],
 			default: 'registered'
+		},
+		remarks:
+		{
+			type: String
 		}
 	},
 	{
