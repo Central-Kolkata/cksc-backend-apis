@@ -48,21 +48,21 @@ const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icai
 {
 	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event"))
 	{
-		return await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount);
+		return await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, "", paymentType, amount, remarks);
 	}
 
 	return null;
 };
 
 // Function to handle new member creation
-const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount = 0) =>
+const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount = 0, remarks = "") =>
 {
 	const type = paymentType === "Event" ? "event" : "pendingForApproval";
 
 	const newUser = await User.create(
 		{
 			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: amount,
-			mobile, email, active: false, type
+			mobile, email, active: false, type, remarks
 		});
 
 	return newUser;
@@ -223,7 +223,7 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 
 		if (isPaymentSuccessful) 
 		{
-			if (isOneTimePayment)
+			if (!isOneTimePayment)
 			{
 				await activateTheUser(ckscReferenceNo); // Assuming activateTheUser function exists
 				await reduceThePendingAmount(totalAmount, paymentRequest[0].userId);
