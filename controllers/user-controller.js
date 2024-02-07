@@ -75,6 +75,7 @@ const fetchRegisteredEvents = asyncHandler(async (req, res) =>
 	const registeredEvents = await EventRegistration.find({ userId: userId })
 		.populate('eventId'); // Ensure this matches the field name in your EventRegistration schema
 
+	console.log("registeredEvents", registeredEvents);
 	// Extract event details if needed
 	const eventsDetails = registeredEvents.map(registration => registration.eventId);
 
@@ -129,8 +130,25 @@ const userTransactions = asyncHandler(async (req, res) =>
 	}
 });
 
+const asdf = asyncHandler(async (req, res) =>
+{
+	EventRegistration.find()
+		.populate('eventId') // To get event details
+		.populate('userId') // To get user details
+		.then(registrations =>
+		{
+			// Process registrations as needed
+			res.status(200).json({ registrations });
+		})
+		.catch(error =>
+		{
+			console.error("Error fetching registrations:", error);
+			res.status(500).send(error.message);
+		});
+});
+
 module.exports =
 {
 	fetchUsers, createUser, createUsers, fetchPendingAmount, updateUser, deleteUser,
-	fetchRegisteredEvents, userTransactions
+	fetchRegisteredEvents, userTransactions, asdf
 };

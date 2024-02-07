@@ -1,7 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const Venue = require("../models/venue-model");
-const Event = require("../models/event-model"); // Ensure you have an Event model similar to Venue
-const EventRegistration = require("../models/event-registration-model"); // Ensure you have an Event model similar to Venue
+const Event = require("../models/event-model");
+const EventRegistration = require("../models/event-registration-model");
+const User = require("../models/user-model");
 const axios = require("axios");
 
 const fetchVenues = asyncHandler(async (req, res) =>
@@ -113,9 +114,44 @@ const register = asyncHandler(async (req, res) =>
 	res.status(201).json({ message: "Event Registration Successful!" });
 });
 
+const fetchEventUsers = asyncHandler(async (req, res) =>
+{
+	const { eventId } = req.params; // Get the event ID from the route parameter
+
+	// First, find all event registrations for the given event ID
+	const registrations = await EventRegistration.find({ eventId: eventId }).populate('userId');
+
+	// Check if there are registrations
+	if (!registrations || registrations.length === 0)
+	{
+		return res.status(404).json({ message: "No users found for this event." });
+	}
+
+	// Extract specified user details and registration date from the registrations
+	const userDetailsWithRegistrationDate = registrations.map(registration =>
+	{
+		// Extract user details from the populated userId
+		const { name, icaiMembershipNo, mobile, email, ckscMembershipNo } = registration.userId;
+		return {
+			name, // User's name
+			icaiMembershipNo, // ICAI Membership Number
+			mobile, // Mobile number
+			email, // Email address
+			ckscMembershipNo, // CKSC Membership Number
+			registrationDate: registration.registrationDate // Registration date for the event
+		};
+	});
+
+	// Filter out any entries that may not have a user (for data integrity)
+	const validEntries = userDetailsWithRegistrationDate.filter(entry => entry.name);
+
+	// Return the user details
+	res.status(200).json(validEntries);
+});
+
 module.exports =
 {
 	fetchVenues, createVenue, updateVenue, deleteVenue,
 	fetchEvents, createEvent, updateEvent, deleteEvent,
-	register
+	register, fetchEventUsers
 };

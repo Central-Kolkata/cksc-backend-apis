@@ -1,6 +1,7 @@
 const errorHandler = (err, req, res, next) =>
 {
-	const statusCode = res.statusCode ? res.statusCode : 500;
+	// Use statusCode from error if available, else default to 500
+	const statusCode = err.statusCode ? err.statusCode : 500;
 
 	res.status(statusCode);
 	res.json(
