@@ -165,5 +165,5 @@ module.exports =
 {
 	fetchVenues, createVenue, updateVenue, deleteVenue,
 	fetchEvents, createEvent, updateEvent, deleteEvent,
-	register, fetchEventUsers
+	register, fetchEventUsers, fetchUpcomingEvents
 };
