@@ -8,16 +8,6 @@ const userPaymentSchema = mongoose.Schema(
 			type: Schema.Types.ObjectId,
 			ref: "User"
 		},
-		paymentRequestId:
-		{
-			type: Schema.Types.ObjectId,
-			ref: "PaymentRequest"
-		},
-		paymentResponseId:
-		{
-			type: Schema.Types.ObjectId,
-			ref: "PaymentResponse"
-		},
 		iciciPaymentRequestId:
 		{
 			type: Schema.Types.ObjectId,
