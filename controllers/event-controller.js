@@ -55,6 +55,18 @@ const fetchEvents = asyncHandler(async (req, res) =>
 	res.status(200).json({ events });
 });
 
+const fetchUpcomingEvents = asyncHandler(async (req, res) =>
+{
+	// Get today's date at the start of the day (00:00:00)
+	const today = new Date();
+	today.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to 0
+
+	const events = await Event.find({ eventStartDate: { $gte: today } })
+		.sort({ 'eventStartDate': 1 }); // Sort by eventStartDate ascending
+
+	res.status(200).json({ events });
+});
+
 // Create a new event
 const createEvent = asyncHandler(async (req, res) =>
 {
