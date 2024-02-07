@@ -223,8 +223,8 @@ const handlePaymentResponse = asyncHandler(async (req, res) =>
 
 		if (isPaymentSuccessful) 
 		{
-			await activateTheUser(ckscReferenceNo); // Assuming activateTheUser function exists
-			await reduceThePendingAmount(totalAmount, paymentRequest[0].userId);
+			// await activateTheUser(ckscReferenceNo); // Assuming activateTheUser function exists
+			// await reduceThePendingAmount(totalAmount, paymentRequest[0].userId);
 		}
 
 		const userPaymentResponseDetails =
