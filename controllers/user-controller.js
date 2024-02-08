@@ -132,19 +132,23 @@ const userTransactions = asyncHandler(async (req, res) =>
 
 const asdf = asyncHandler(async (req, res) =>
 {
-	EventRegistration.find()
-		.populate('eventId') // To get event details
-		.populate('userId') // To get user details
-		.then(registrations =>
-		{
-			// Process registrations as needed
-			res.status(200).json({ registrations });
-		})
-		.catch(error =>
-		{
-			console.error("Error fetching registrations:", error);
-			res.status(500).send(error.message);
-		});
+	try
+	{
+		// Update all users where pendingAmount is less than 0
+		const updateResult = await User.updateMany(
+			{ pendingAmount: { $lt: 0 } }, // Criteria: pendingAmount < 0
+			{ $set: { pendingAmount: 0 } }  // Set pendingAmount to 0
+		);
+
+		// If you want to do something with updateResult (e.g., logging), you can do it here
+		console.log(updateResult);
+
+		res.status(200).json({ message: "Pending amounts updated successfully", updateResult });
+	} catch (error)
+	{
+		console.error("Error updating pending amounts:", error);
+		res.status(500).send(error.message);
+	}
 });
 
 module.exports =

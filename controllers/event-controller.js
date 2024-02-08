@@ -128,37 +128,38 @@ const register = asyncHandler(async (req, res) =>
 
 const fetchEventUsers = asyncHandler(async (req, res) =>
 {
-	const { eventId } = req.params; // Get the event ID from the route parameter
+	const { eventId } = req.params;
 
-	// First, find all event registrations for the given event ID
 	const registrations = await EventRegistration.find({ eventId: eventId }).populate('userId');
 
-	// Check if there are registrations
 	if (!registrations || registrations.length === 0)
 	{
 		return res.status(404).json({ message: "No users found for this event." });
 	}
 
-	// Extract specified user details and registration date from the registrations
-	const userDetailsWithRegistrationDate = registrations.map(registration =>
+	const userDetailsWithRegistrationDate = [];
+
+	registrations.forEach((registration, index) =>
 	{
-		// Extract user details from the populated userId
-		const { name, icaiMembershipNo, mobile, email, ckscMembershipNo } = registration.userId;
-		return {
-			name, // User's name
-			icaiMembershipNo, // ICAI Membership Number
-			mobile, // Mobile number
-			email, // Email address
-			ckscMembershipNo, // CKSC Membership Number
-			registrationDate: registration.registrationDate // Registration date for the event
-		};
+		if (!registration.userId)
+		{
+			// Log the registration ID and index for further investigation
+			console.log(`Missing userId at index ${index} with registration ID: ${registration._id}`);
+		} else
+		{
+			const { name, icaiMembershipNo, mobile, email, ckscMembershipNo } = registration.userId;
+			userDetailsWithRegistrationDate.push({
+				name,
+				icaiMembershipNo,
+				mobile,
+				email,
+				ckscMembershipNo,
+				registrationDate: registration.registrationDate
+			});
+		}
 	});
 
-	// Filter out any entries that may not have a user (for data integrity)
-	const validEntries = userDetailsWithRegistrationDate.filter(entry => entry.name);
-
-	// Return the user details
-	res.status(200).json(validEntries);
+	res.status(200).json(userDetailsWithRegistrationDate);
 });
 
 module.exports =
