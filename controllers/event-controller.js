@@ -135,8 +135,9 @@ const fetchEventUsers = asyncHandler(async (req, res) =>
 
 	try
 	{
+		// Step 1: Fetch registrations with userId populated
 		const registrations = await EventRegistration.find({ eventId: eventId })
-			.populate('userId', 'name icaiMembershipNo mobile email ckscMembershipNo') // Assuming these fields exist in your User model
+			.populate('userId')
 			.lean();
 
 		if (!registrations || registrations.length === 0)
@@ -144,40 +145,56 @@ const fetchEventUsers = asyncHandler(async (req, res) =>
 			return res.status(404).json({ message: "No users found for this event." });
 		}
 
-		// Filter out registrations with invalid transactionRefNo before populating
-		const validRegistrations = registrations.filter(reg => reg.transactionRefNo && mongoose.Types.ObjectId.isValid(reg.transactionRefNo));
+		// Prepare the response array
+		const userDetailsWithRegistrationDate = [];
 
-		// Populate UserPayment and ICICIPaymentRequest details for valid registrations
-		for (const registration of validRegistrations)
+		// Step 2 & 3: Iterate and conditionally fetch UserPayments
+		for (const registration of registrations)
 		{
-			if (registration.transactionRefNo)
+			let amountPaid = '-'; // Default value
+			let paymentRemarks = registration.additionalNotes || ''; // Use additionalNotes if available
+
+			// Only proceed if ckscMembershipNo is null and transactionRefNo is a valid ObjectId
+			if (!registration.userId?.ckscMembershipNo && mongoose.Types.ObjectId.isValid(registration.transactionRefNo))
 			{
-				const userPayment = await UserPayment.findById(registration.transactionRefNo).populate('iciciPaymentRequestId', 'amount').lean();
-				// Assign amount and paymentRemarks directly to the registration object for simplicity
+				const userPayment = await UserPayment.findById(registration.transactionRefNo)
+					.populate(
+						{
+							path: 'iciciPaymentRequestId',
+							select: 'amount paymentRemarks' // Selecting amount and paymentRemarks
+						})
+					.lean();
+
 				if (userPayment && userPayment.iciciPaymentRequestId)
 				{
-					registration.amountPaid = userPayment.iciciPaymentRequestId.amount;
-					// Assuming paymentRemarks exists in ICICIPaymentRequest model
-					registration.paymentRemarks = userPayment.iciciPaymentRequestId.paymentRemarks;
+					amountPaid = userPayment.iciciPaymentRequestId.amount || amountPaid;
+					// Override paymentRemarks only if additionalNotes is not present
+					if (!registration.additionalNotes && userPayment.iciciPaymentRequestId.paymentRemarks)
+					{
+						paymentRemarks = userPayment.iciciPaymentRequestId.paymentRemarks;
+					}
 				}
 			}
+
+			userDetailsWithRegistrationDate.push(
+				{
+					...registration.userId,
+					registrationId: registration._id.toString(),
+					amountPaid,
+					paymentRemarks, // This now correctly reflects the logic you wanted
+					additionalNotes: registration.additionalNotes || 'N/A',
+					registrationDate: registration.registrationDate,
+				});
 		}
 
-		const userDetailsWithRegistrationDate = validRegistrations.map(registration => ({
-			...registration.userId,
-			registrationId: registration._id,
-			amountPaid: registration.amountPaid || 'N/A',
-			paymentRemarks: registration.paymentRemarks || 'N/A',
-			additionalNotes: registration.additionalNotes,
-			registrationDate: registration.registrationDate,
-		}));
-
 		res.status(200).json(userDetailsWithRegistrationDate);
-	} catch (error)
+	}
+	catch (error)
 	{
 		res.status(500).send(`Error fetching registrations: ${error.message}`);
 	}
 });
+
 
 module.exports =
 {
