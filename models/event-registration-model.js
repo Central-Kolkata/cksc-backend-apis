@@ -32,7 +32,8 @@ const eventRegistrationSchema = mongoose.Schema(
 		},
 		transactionRefNo:
 		{
-			type: String
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'UserPayment'
 		},
 		amount:
 		{

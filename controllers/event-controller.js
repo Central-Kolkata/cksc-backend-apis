@@ -1,7 +1,10 @@
+const mongoose = require("mongoose");
 const asyncHandler = require("express-async-handler");
 const Venue = require("../models/venue-model");
 const Event = require("../models/event-model");
 const EventRegistration = require("../models/event-registration-model");
+const UserPayment = require("../models/user-payment");
+const ICICIPaymentRequest = require("../models/icici-payment-request");
 const User = require("../models/user-model");
 const axios = require("axios");
 
@@ -130,36 +133,50 @@ const fetchEventUsers = asyncHandler(async (req, res) =>
 {
 	const { eventId } = req.params;
 
-	const registrations = await EventRegistration.find({ eventId: eventId }).populate('userId');
-
-	if (!registrations || registrations.length === 0)
+	try
 	{
-		return res.status(404).json({ message: "No users found for this event." });
-	}
+		const registrations = await EventRegistration.find({ eventId: eventId })
+			.populate('userId', 'name icaiMembershipNo mobile email ckscMembershipNo') // Assuming these fields exist in your User model
+			.lean();
 
-	const userDetailsWithRegistrationDate = [];
-
-	registrations.forEach((registration, index) =>
-	{
-		if (!registration.userId)
+		if (!registrations || registrations.length === 0)
 		{
-			// Log the registration ID and index for further investigation
-			console.log(`Missing userId at index ${index} with registration ID: ${registration._id}`);
-		} else
-		{
-			const { name, icaiMembershipNo, mobile, email, ckscMembershipNo } = registration.userId;
-			userDetailsWithRegistrationDate.push({
-				name,
-				icaiMembershipNo,
-				mobile,
-				email,
-				ckscMembershipNo,
-				registrationDate: registration.registrationDate
-			});
+			return res.status(404).json({ message: "No users found for this event." });
 		}
-	});
 
-	res.status(200).json(userDetailsWithRegistrationDate);
+		// Filter out registrations with invalid transactionRefNo before populating
+		const validRegistrations = registrations.filter(reg => reg.transactionRefNo && mongoose.Types.ObjectId.isValid(reg.transactionRefNo));
+
+		// Populate UserPayment and ICICIPaymentRequest details for valid registrations
+		for (const registration of validRegistrations)
+		{
+			if (registration.transactionRefNo)
+			{
+				const userPayment = await UserPayment.findById(registration.transactionRefNo).populate('iciciPaymentRequestId', 'amount').lean();
+				// Assign amount and paymentRemarks directly to the registration object for simplicity
+				if (userPayment && userPayment.iciciPaymentRequestId)
+				{
+					registration.amountPaid = userPayment.iciciPaymentRequestId.amount;
+					// Assuming paymentRemarks exists in ICICIPaymentRequest model
+					registration.paymentRemarks = userPayment.iciciPaymentRequestId.paymentRemarks;
+				}
+			}
+		}
+
+		const userDetailsWithRegistrationDate = validRegistrations.map(registration => ({
+			...registration.userId,
+			registrationId: registration._id,
+			amountPaid: registration.amountPaid || 'N/A',
+			paymentRemarks: registration.paymentRemarks || 'N/A',
+			additionalNotes: registration.additionalNotes,
+			registrationDate: registration.registrationDate,
+		}));
+
+		res.status(200).json(userDetailsWithRegistrationDate);
+	} catch (error)
+	{
+		res.status(500).send(`Error fetching registrations: ${error.message}`);
+	}
 });
 
 module.exports =

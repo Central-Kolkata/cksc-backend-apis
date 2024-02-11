@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/user-model");
 const EventRegistration = require("../models/event-registration-model");
@@ -132,23 +133,55 @@ const userTransactions = asyncHandler(async (req, res) =>
 
 const asdf = asyncHandler(async (req, res) =>
 {
+	const eventId = "65c3ce1d3566840ec78fea40";
+
 	try
 	{
-		// Update all users where pendingAmount is less than 0
-		const updateResult = await User.updateMany(
-			{ pendingAmount: { $lt: 0 } }, // Criteria: pendingAmount < 0
-			{ $set: { pendingAmount: 0 } }  // Set pendingAmount to 0
-		);
+		// Fetch the updated registrations
+		const updatedRegistrations = await EventRegistration.find({ eventId: mongoose.Types.ObjectId(eventId) })
+			.populate('userId')
+			.lean();
 
-		// If you want to do something with updateResult (e.g., logging), you can do it here
-		console.log(updateResult);
+		let i = 1;
+		// Begin HTML table
+		let html = '<table border="1"><tr><th>S.N.</th><th>Registration ID</th><th>User ID</th><th>Amount</th><th>Payment Status</th><th>Txn Ref No</th><th>Name</th><th>ICAI Membership No</th><th>CKSC Membership No</th><th>Mobile</th><th>Email</th><th>Remarks</th><th>Additional Notes</th></tr>';
 
-		res.status(200).json({ message: "Pending amounts updated successfully", updateResult });
+		// Loop over each updated registration and add a row to the HTML table
+		updatedRegistrations.forEach((registration) =>
+		{
+			if (!registration.userId)
+			{
+				console.log(`Skipping registration with ID: ${registration._id} because userId is null`);
+				return;
+			}
+
+			html += `<tr>
+				<td>${i++}</td>
+                <td>${registration._id}</td>
+                <td>${registration.userId._id}</td>
+                <td>${registration.amount || 'N/A'}</td>
+                <td>${registration.paymentStatus}</td>
+                <td>${registration.transactionRefNo}</td>
+                <td>${registration.userId.name}</td>
+                <td>${registration.userId.icaiMembershipNo}</td>
+                <td>${registration.userId.ckscMembershipNo || 'N/A'}</td>
+                <td>${registration.userId.mobile}</td>
+                <td>${registration.userId.email}</td>
+                <td>${registration.userId.remarks || 'N/A'}</td>
+                <td>${registration.additionalNotes || 'N/A'}</td>
+            </tr>`;
+		});
+
+		// End HTML table
+		html += '</table>';
+
+		// Send HTML response
+		res.send(html);
 	} catch (error)
 	{
-		console.error("Error updating pending amounts:", error);
-		res.status(500).send(error.message);
+		res.status(500).send(`Error fetching registrations: ${error.message}`);
 	}
+
 });
 
 module.exports =
