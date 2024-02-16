@@ -63,7 +63,7 @@ const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icai
 // Function to handle new member creation
 const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount = 0, remarks = "") =>
 {
-	const type = paymentType === "Event" ? "event" : "pendingForApproval";
+	const type = paymentType === "Event" ? "non-member" : "member";
 
 	const newUser = await User.create(
 		{
@@ -353,7 +353,7 @@ const reduceThePendingAmount = async (amountToReduce, userId) =>
 
 	if (!user)
 	{
-		throw new NotFoundError("User not found");
+		throw new NotFoundError("Member not found");
 	}
 
 	user.pendingAmount -= amountToReduce;
