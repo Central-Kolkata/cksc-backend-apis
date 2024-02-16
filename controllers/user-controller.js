@@ -69,50 +69,50 @@ const replaceUsers = asyncHandler(async (req, res) =>
 {
 	const usersData = req.body;
 
-	// for (const userData of usersData)
+	for (const userData of usersData)
+	{
+		const { name, icaiMembershipNo } = userData;
+		let { ckscMembershipNo } = userData;
+
+		ckscMembershipNo = standardizeCKSCNo(ckscMembershipNo);
+
+		const user = await User.findOne(
+			{
+				icaiMembershipNo,
+				$or:
+					[
+						{ ckscMembershipNo }, { ckscMembershipNo: userData["CKSC Membership No"] }
+					]
+			}
+		);
+
+		if (user)
+		{
+			Object.assign(user, userData, { ckscMembershipNo });
+			await user.save();
+		}
+		else
+		{
+			const newUser = new User({ ...userData, ckscMembershipNo });
+			await newUser.save();
+		}
+	}
+
+	res.status(200).json({ message: 'Users data processed successfully' });
+
+	// try
 	// {
-	// 	const { name, icaiMembershipNo } = userData;
-	// 	let { ckscMembershipNo } = userData;
+	// 	// Option 1: Remove all existing documents and insert the new data
+	// 	await User.deleteMany({}); // Use with caution!
 
-	// 	ckscMembershipNo = standardizeCKSCNo(ckscMembershipNo);
+	// 	const insertedUsers = await User.insertMany(usersData);
 
-	// 	const user = await User.findOne(
-	// 		{
-	// 			name, icaiMembershipNo,
-	// 			$or:
-	// 				[
-	// 					{ ckscMembershipNo }, { ckscMembershipNo: userData["CKSC Membership No"] }
-	// 				]
-	// 		}
-	// 	);
-
-	// 	if (user)
-	// 	{
-	// 		Object.assign(user, userData, { ckscMembershipNo });
-	// 		await user.save();
-	// 	}
-	// 	else
-	// 	{
-	// 		const newUser = new User({ ...userData, ckscMembershipNo });
-	// 		await newUser.save();
-	// 	}
+	// 	res.status(200).json({ message: "Operation successful!", insertedUsers });
 	// }
-
-	// res.status(200).json({ message: 'Users data processed successfully' });
-
-	try
-	{
-		// Option 1: Remove all existing documents and insert the new data
-		await User.deleteMany({}); // Use with caution!
-
-		const insertedUsers = await User.insertMany(usersData);
-
-		res.status(200).json({ message: "Operation successful!", insertedUsers });
-	}
-	catch (error)
-	{
-		res.status(400).json({ message: "Error replacing users", error: error.message });
-	}
+	// catch (error)
+	// {
+	// 	res.status(400).json({ message: "Error replacing users", error: error.message });
+	// }
 });
 
 const deleteUser = asyncHandler(async (req, res) =>
