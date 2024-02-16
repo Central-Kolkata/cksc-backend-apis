@@ -33,7 +33,8 @@ const eventRegistrationSchema = mongoose.Schema(
 		transactionRefNo:
 		{
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'UserPayment'
+			ref: 'UserPayment',
+			required: false
 		},
 		amount:
 		{
