@@ -42,6 +42,79 @@ const updateUser = asyncHandler(async (req, res) =>
 	res.status(200).json({ message: "User details successfully updated!" });
 });
 
+const bulkUpdateuser = asyncHandler(async (req, res) =>
+{
+
+});
+
+function standardizeCKSCNo(ckscNo)
+{
+	if (!ckscNo || !ckscNo.startsWith('CKSC-'))
+	{
+		return ckscNo;
+	}
+
+	const parts = ckscNo.split('-');
+
+	if (parts.length !== 2)
+	{
+		return ckscNo;
+	}
+
+	const numericPart = parts[1].padStart(4, '0');
+	return `CKSC-${numericPart}`;
+}
+
+const replaceUsers = asyncHandler(async (req, res) =>
+{
+	const usersData = req.body;
+
+	// for (const userData of usersData)
+	// {
+	// 	const { name, icaiMembershipNo } = userData;
+	// 	let { ckscMembershipNo } = userData;
+
+	// 	ckscMembershipNo = standardizeCKSCNo(ckscMembershipNo);
+
+	// 	const user = await User.findOne(
+	// 		{
+	// 			name, icaiMembershipNo,
+	// 			$or:
+	// 				[
+	// 					{ ckscMembershipNo }, { ckscMembershipNo: userData["CKSC Membership No"] }
+	// 				]
+	// 		}
+	// 	);
+
+	// 	if (user)
+	// 	{
+	// 		Object.assign(user, userData, { ckscMembershipNo });
+	// 		await user.save();
+	// 	}
+	// 	else
+	// 	{
+	// 		const newUser = new User({ ...userData, ckscMembershipNo });
+	// 		await newUser.save();
+	// 	}
+	// }
+
+	// res.status(200).json({ message: 'Users data processed successfully' });
+
+	try
+	{
+		// Option 1: Remove all existing documents and insert the new data
+		await User.deleteMany({}); // Use with caution!
+
+		const insertedUsers = await User.insertMany(usersData);
+
+		res.status(200).json({ message: "Operation successful!", insertedUsers });
+	}
+	catch (error)
+	{
+		res.status(400).json({ message: "Error replacing users", error: error.message });
+	}
+});
+
 const deleteUser = asyncHandler(async (req, res) =>
 {
 	const user = await User.findByIdAndUpdate(req.params.id);
@@ -181,11 +254,10 @@ const asdf = asyncHandler(async (req, res) =>
 	{
 		res.status(500).send(`Error fetching registrations: ${error.message}`);
 	}
-
 });
 
 module.exports =
 {
 	fetchUsers, createUser, createUsers, fetchPendingAmount, updateUser, deleteUser,
-	fetchRegisteredEvents, userTransactions, asdf
+	fetchRegisteredEvents, userTransactions, asdf, replaceUsers
 };

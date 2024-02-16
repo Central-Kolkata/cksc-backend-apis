@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator"); // npm install validator
 
 const userSchema = mongoose.Schema(
 	{
@@ -22,21 +23,38 @@ const userSchema = mongoose.Schema(
 		},
 		mobile:
 		{
-			type: String
+			type: String,
+			validate: [validator.isMobilePhone, "Please fill a valid mobile number"]
 		},
 		email:
 		{
-			type: String
+			type: String,
+			validate: [validator.isEmail, "Please fill a valid email address"]
 		},
-		active:
+		dob:
 		{
-			type: Boolean
+			type: Date
+		},
+		dateOfAnniversary:
+		{
+			type: Date,
+			// Optional field, no required validation needed
+		},
+		spouseName:
+		{
+			type: String,
+			// Optional field, no required validation needed
+		},
+		status:
+		{
+			type: String,
+			enum: ['active', 'inactive', 'deleted']
 		},
 		type:
 		{
 			type: String,
-			enum: ['registered', 'unregistered', 'pendingForApproval', 'approved', 'onetime', 'event'],
-			default: 'registered'
+			enum: ['member', 'non-member', 'patron'],
+			default: 'member'
 		},
 		remarks:
 		{
@@ -45,6 +63,7 @@ const userSchema = mongoose.Schema(
 	},
 	{
 		timestamps: true
-	});
+	}
+);
 
 module.exports = mongoose.model("User", userSchema);
