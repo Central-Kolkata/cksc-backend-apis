@@ -108,7 +108,7 @@ const deleteEvent = asyncHandler(async (req, res) =>
 
 const register = asyncHandler(async (req, res) =>
 {
-	const { userId, eventId } = req.body;
+	const { userId, eventId, remarks } = req.body;
 
 	// Check if the user has already registered for this event
 	const existingRegistration = await EventRegistration.findOne(
@@ -123,8 +123,16 @@ const register = asyncHandler(async (req, res) =>
 		return res.status(400).json({ message: "Member has already registered for this event." });
 	}
 
+	const registrationData =
+	{
+		...req.body,
+		additionalNotes: remarks
+	};
+
+	delete registrationData.remarks;
+
 	// Proceed to create a new event registration
-	await EventRegistration.create(req.body);
+	await EventRegistration.create(registrationData);
 
 	res.status(201).json({ message: "Event Registration Successful!" });
 });
