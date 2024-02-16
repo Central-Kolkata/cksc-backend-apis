@@ -150,16 +150,22 @@ const registerOneTimeUser = asyncHandler(async (req, res) =>
 	}
 
 	// Create event registration for the new user
-	const eventRegistration = new EventRegistration(
-		{
-			eventId: selectedEvent, // Assuming this is the ObjectId of the event
-			userId: newUser._id, // Use _id for MongoDB ObjectId reference
-			transactionRefNo: "",
-			amount: amount,
-			paymentStatus: 'unpaid', // Assuming the payment has not been completed yet
-			// Set other fields as needed
-		});
+	const eventRegistrationData =
+	{
+		eventId: selectedEvent, // Assuming this is the ObjectId of the event
+		userId: newUser._id, // Use _id for MongoDB ObjectId reference
+		amount: amount,
+		paymentStatus: 'unpaid', // Assuming the payment has not been completed yet
+		additionalNotes: remarks,
+		// Include other fields as necessary
+	};
 
+	if (request.transactionRefNo && mongoose.Types.ObjectId.isValid(request.transactionRefNo))
+	{
+		eventRegistrationData.transactionRefNo = request.transactionRefNo;
+	}
+
+	const eventRegistration = new EventRegistration(eventRegistrationData);
 	await eventRegistration.save();
 
 	// Send response back with event registration details
