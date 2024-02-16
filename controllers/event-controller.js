@@ -120,7 +120,7 @@ const register = asyncHandler(async (req, res) =>
 
 	if (existingRegistration) 
 	{
-		return res.status(400).json({ message: "User has already registered for this event." });
+		return res.status(400).json({ message: "Member has already registered for this event." });
 	}
 
 	// Proceed to create a new event registration
@@ -142,7 +142,7 @@ const fetchEventUsers = asyncHandler(async (req, res) =>
 
 		if (!registrations || registrations.length === 0)
 		{
-			return res.status(404).json({ message: "No users found for this event." });
+			return res.status(404).json({ message: "No members found for this event." });
 		}
 
 		// Prepare the response array
