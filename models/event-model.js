@@ -14,16 +14,24 @@ const eventSchema = mongoose.Schema(
 		{
 			type: Date
 		},
+		registrationClosesOn:
+		{
+			type: Date
+		},
 		eventDuration:
 		{
 			type: Number
+		},
+		hasCPEHours:
+		{
+			type: Boolean
 		},
 		eventVenue:
 		{
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Venue'
 		},
-		freeEventForCKCA:
+		freeForCKCAMember:
 		{
 			type: Boolean,
 			default: false
@@ -43,7 +51,12 @@ const eventSchema = mongoose.Schema(
 		eventSpeakers:
 		{
 			type: [String]
-		}
+		},
+		registeredMembers:
+			[{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Member"
+			}]
 	},
 	{
 		timestamps: true

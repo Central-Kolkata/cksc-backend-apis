@@ -8,10 +8,10 @@ const eventRegistrationSchema = mongoose.Schema(
 			ref: 'Event',
 			required: true
 		},
-		userId:
+		memberId:
 		{
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'User', // Replace with your User model's name if different
+			ref: 'Member',
 			required: true
 		},
 		registrationDate:
@@ -25,18 +25,22 @@ const eventRegistrationSchema = mongoose.Schema(
 			enum: ['pending', 'confirmed', 'cancelled'],
 			default: 'confirmed'
 		},
-		isPaymentRequired:
-		{
-			type: Boolean,
-			default: false
-		},
 		transactionRefNo:
 		{
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'UserPayment',
+			ref: 'MemberPayment',
 			required: false
 		},
-		amount:
+		transactionAmount:
+		{
+			type: Number,
+			required: false
+		},
+		eventAmount:
+		{
+			type: Number
+		},
+		currentPendingAmount:
 		{
 			type: Number
 		},
@@ -46,7 +50,7 @@ const eventRegistrationSchema = mongoose.Schema(
 			enum: ['paid', 'unpaid', 'NA'],
 			default: 'NA'
 		},
-		additionalNotes:
+		remarks:
 		{
 			type: String
 		}

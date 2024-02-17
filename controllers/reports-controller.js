@@ -1,14 +1,14 @@
 const asyncHandler = require("express-async-handler");
 const ICICIPaymentRequest = require("../models/icici-payment-request");
 const ICICIPaymentResponse = require("../models/icici-payment-response");
-const User = require("../models/user-model");
-const UserPayment = require("../models/user-payment");
+const Member = require("../models/member-model");
+const MemberPayment = require("../models/member-payment");
 
-const fetchAllUsers = asyncHandler(async (req, res) =>
+const fetchAllMembers = asyncHandler(async (req, res) =>
 {
-	const allUsers = await User.find({});
-	let serialNumber = 1; // Initialize serial number
-	let tableHtml = `
+    const allMembers = await Member.find({});
+    let serialNumber = 1; // Initialize serial number
+    let tableHtml = `
         <style>
             table, th, td {
                 font-family: 'Calibri', sans-serif; /* Set the font style to Calibri */
@@ -37,91 +37,91 @@ const fetchAllUsers = asyncHandler(async (req, res) =>
             <tbody>
     `;
 
-	for (const user of allUsers)
-	{
-		// Format createdAt and updatedAt to include time
-		const formattedCreatedAt = user.createdAt.toISOString().replace('T', ' ').slice(0, 19);
-		const formattedUpdatedAt = user.updatedAt.toISOString().replace('T', ' ').slice(0, 19);
+    for (const member of allMembers)
+    {
+        // Format createdAt and updatedAt to include time
+        const formattedCreatedAt = member.createdAt.toISOString().replace('T', ' ').slice(0, 19);
+        const formattedUpdatedAt = member.updatedAt.toISOString().replace('T', ' ').slice(0, 19);
 
-		tableHtml += `
+        tableHtml += `
             <tr>
                 <td>${serialNumber++}</td>
-                <td>${user.name}</td>
-                <td>${user.icaiMembershipNo}</td>
-                <td>${user.ckscMembershipNo}</td>
-                <td>${user.pendingAmount}</td>
-                <td>${user.mobile}</td>
-                <td>${user.email}</td>
+                <td>${member.name}</td>
+                <td>${member.icaiMembershipNo}</td>
+                <td>${member.ckscMembershipNo}</td>
+                <td>${member.pendingAmount}</td>
+                <td>${member.mobile}</td>
+                <td>${member.email}</td>
                 <td>${formattedCreatedAt}</td>
                 <td>${formattedUpdatedAt}</td>
             </tr>
         `;
-	}
+    }
 
-	tableHtml += `</tbody></table>`;
+    tableHtml += `</tbody></table>`;
 
-	res.send(tableHtml);
+    res.send(tableHtml);
 });
 
 const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
 {
-	const paymentResponses = await ICICIPaymentResponse.find({ responseCode: "E000" });
-	let allPayments = [];
+    const paymentResponses = await ICICIPaymentResponse.find({ responseCode: "E000" });
+    let allPayments = [];
 
-	for (const paymentResponse of paymentResponses)
-	{
-		const paymentRequest = await ICICIPaymentRequest.findOne(
-			{
-				referenceNo: paymentResponse.ckscReferenceNo
-			});
+    for (const paymentResponse of paymentResponses)
+    {
+        const paymentRequest = await ICICIPaymentRequest.findOne(
+            {
+                referenceNo: paymentResponse.ckscReferenceNo
+            });
 
-		if (paymentRequest)
-		{
-			allPayments.push(
-				{
-					icaiMembershipNo: paymentRequest.icaiMembershipNo,
-					name: paymentRequest.name,
-					email: paymentRequest.email,
-					mobile: paymentRequest.mobile,
-					amount: paymentRequest.amount,
-					referenceNo: paymentRequest.referenceNo,
-					iciciReferenceNo: paymentResponse.iciciReferenceNo,
-					transactionDate: paymentResponse.transactionDate,
-					paymentMode: paymentResponse.paymentMode,
-					paymentType: paymentRequest.paymentType || 'NA',
-					paymentDescription: paymentRequest.paymentDescription || 'NA',
-					paymentRemarks: paymentRequest.paymentRemarks || 'NA'
-				});
-		}
-	}
+        if (paymentRequest)
+        {
+            allPayments.push(
+                {
+                    icaiMembershipNo: paymentRequest.icaiMembershipNo,
+                    name: paymentRequest.name,
+                    email: paymentRequest.email,
+                    mobile: paymentRequest.mobile,
+                    amount: paymentRequest.amount,
+                    referenceNo: paymentRequest.referenceNo,
+                    iciciReferenceNo: paymentResponse.iciciReferenceNo,
+                    transactionDate: paymentResponse.transactionDate,
+                    paymentMode: paymentResponse.paymentMode,
+                    paymentType: paymentRequest.paymentType || 'NA',
+                    paymentDescription: paymentRequest.paymentDescription || 'NA',
+                    paymentRemarks: paymentRequest.paymentRemarks || 'NA'
+                });
+        }
+    }
 
-	// Sort the combined data
-	allPayments.sort((a, b) =>
-	{
-		// Function to convert date string to a Date object
-		const parseDate = (dateStr) =>
-		{
-			const parts = dateStr.split(/[- :]/);
-			return new Date(parts[2], parts[1] - 1, parts[0], parts[3], parts[4], parts[5]);
-		};
+    // Sort the combined data
+    allPayments.sort((a, b) =>
+    {
+        // Function to convert date string to a Date object
+        const parseDate = (dateStr) =>
+        {
+            const parts = dateStr.split(/[- :]/);
+            return new Date(parts[2], parts[1] - 1, parts[0], parts[3], parts[4], parts[5]);
+        };
 
-		// Convert transaction dates to Date objects for comparison
-		const dateA = parseDate(a.transactionDate);
-		const dateB = parseDate(b.transactionDate);
+        // Convert transaction dates to Date objects for comparison
+        const dateA = parseDate(a.transactionDate);
+        const dateB = parseDate(b.transactionDate);
 
-		// Compare dates first, in descending order
-		if (dateA > dateB) return -1;
-		if (dateA < dateB) return 1;
+        // Compare dates first, in descending order
+        if (dateA > dateB) return -1;
+        if (dateA < dateB) return 1;
 
-		// If dates are equal, sort by paymentType
-		return a.paymentType.localeCompare(b.paymentType);
-	});
+        // If dates are equal, sort by paymentType
+        return a.paymentType.localeCompare(b.paymentType);
+    });
 
-	// Convert the sorted data into HTML table rows
-	let tableRows = '';
-	allPayments.forEach((payment, index) =>
-	{
-		tableRows += `
+    // Convert the sorted data into HTML table rows
+    let tableRows = '';
+    allPayments.forEach((payment, index) =>
+    {
+        tableRows += `
             <tr>
                 <td>${index + 1}</td>
                 <td>${payment.icaiMembershipNo}</td>
@@ -138,9 +138,9 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
                 <td>${payment.paymentRemarks}</td>
             </tr>
         `;
-	});
+    });
 
-	const htmlTable = `
+    const htmlTable = `
         <style>
             table, th, td {
                 font-family: 'Calibri', sans-serif;
@@ -176,14 +176,14 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
         </table>
     `;
 
-	// Calculate the grand total
-	let grandTotal = allPayments.reduce((total, payment) => total + payment.amount, 0);
+    // Calculate the grand total
+    let grandTotal = allPayments.reduce((total, payment) => total + payment.amount, 0);
 
-	// HTML for the grand total
-	const grandTotalHtml = `<p style="font-family: 'Calibri', sans-serif; font-size: 18px; font-weight: bold;">Grand Total: ${grandTotal}</p>`;
+    // HTML for the grand total
+    const grandTotalHtml = `<p style="font-family: 'Calibri', sans-serif; font-size: 18px; font-weight: bold;">Grand Total: ${grandTotal}</p>`;
 
-	// Combine the grand total and the table
-	const htmlContent = `
+    // Combine the grand total and the table
+    const htmlContent = `
         <style>
             table, th, td {
                 font-family: 'Calibri', sans-serif;
@@ -199,39 +199,39 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
         ${htmlTable}
     `;
 
-	res.send(htmlContent);
+    res.send(htmlContent);
 });
 
 const fetchAllPaymentDetailsJSON = asyncHandler(async (req, res) =>
 {
-	const paymentResponses = await ICICIPaymentResponse.find({ responseCode: "E000" });
-	let allPaymentDetails = [];
+    const iciciPaymentResponses = await ICICIPaymentResponse.find({ responseCode: "E000" });
+    let allPaymentDetails = [];
 
-	for (const paymentResponse of paymentResponses)
-	{
-		const paymentRequest = await ICICIPaymentRequest.find(
-			{
-				amount: 300,
-				referenceNo: paymentResponse.ckscReferenceNo
-			});
+    for (const paymentResponse of iciciPaymentResponses)
+    {
+        const iciciPaymentRequest = await ICICIPaymentRequest.find(
+            {
+                amount: 300,
+                referenceNo: paymentResponse.ckscReferenceNo
+            });
 
-		allPaymentDetails.push(
-			{
-				icaiMembershipNo: paymentRequest.icaiMembershipNo,
-				name: paymentRequest.name,
-				email: paymentRequest.email,
-				mobile: paymentRequest.mobile,
-				referenceNo: paymentRequest.referenceNo,
-				iciciReferenceNo: paymentResponse.iciciReferenceNo,
-				transactionDate: paymentResponse.transactionDate,
-				paymentMode: paymentResponse.paymentMode
-			});
-	}
+        allPaymentDetails.push(
+            {
+                icaiMembershipNo: iciciPaymentRequest.icaiMembershipNo,
+                name: iciciPaymentRequest.name,
+                email: iciciPaymentRequest.email,
+                mobile: iciciPaymentRequest.mobile,
+                referenceNo: iciciPaymentRequest.referenceNo,
+                iciciReferenceNo: paymentResponse.iciciReferenceNo,
+                transactionDate: paymentResponse.transactionDate,
+                paymentMode: paymentResponse.paymentMode
+            });
+    }
 
-	res.json(allPaymentDetails);
+    res.json(allPaymentDetails);
 });
 
 module.exports =
 {
-	fetchAllUsers, fetchAllPaymentDetails
+    fetchAllMembers, fetchAllPaymentDetails
 };

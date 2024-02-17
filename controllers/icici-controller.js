@@ -4,21 +4,21 @@ const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const ICICIPaymentRequest = require("../models/icici-payment-request");
 const ICICIPaymentResponse = require("../models/icici-payment-response");
-const User = require("../models/user-model");
-const UserPayment = require("../models/user-payment");
+const Member = require("../models/member-model");
+const MemberPayment = require("../models/member-payment");
 
 const getNextCKSCMembershipNo = async () =>
 {
 	let maxNumber = 0;
 
-	// Fetch all users
-	const allUsers = await User.find({});
+	// Fetch all members
+	const allMembers = await Member.find({});
 
-	allUsers.forEach(user =>
+	allMembers.forEach(member =>
 	{
-		if (user.ckscMembershipNo && user.ckscMembershipNo.startsWith('CKSC-'))
+		if (member.ckscMembershipNo && member.ckscMembershipNo.startsWith('CKSC-'))
 		{
-			const numberPart = parseInt(user.ckscMembershipNo.split('-')[1]);
+			const numberPart = parseInt(member.ckscMembershipNo.split('-')[1]);
 
 			if (!isNaN(numberPart))
 			{
@@ -54,7 +54,7 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 
 	if (paymentType == "New Member")
 	{
-		await User.create(
+		await Member.create(
 			{
 				"name": name,
 				"icaiMembershipNo": icaiMembershipNo,
@@ -68,7 +68,7 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 
 	await ICICIPaymentRequest.create(
 		{
-			"userId": icaiMembershipNo,
+			"memberId": icaiMembershipNo,
 			"icaiMembershipNo": icaiMembershipNo,
 			"ckscMembershipNo": "",
 			"name": name,
@@ -129,7 +129,7 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 {
 	var request = req.body;
 
-	let userId = request.userId;
+	let memberId = request.memberId;
 	let icaiMembershipNo = request.icaiMembershipNo;
 	let ckscMembershipNo = request.ckscMembershipNo;
 
@@ -145,33 +145,33 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 	let amount = request.amount;
 	let referenceNo = generateEnhancedTimestampId(); // Will be used for reverifying a transaction
 
-	let user = await User.findById(userId);
+	let member = await Member.findById(memberId);
 
-	if (user)
+	if (member)
 	{
 		let isModified = false;
 
-		if (user.email !== email)
+		if (member.email !== email)
 		{
-			user.email = email;
+			member.email = email;
 			isModified = true;
 		}
 
-		if (user.mobile !== mobile)
+		if (member.mobile !== mobile)
 		{
-			user.mobile = mobile;
+			member.mobile = mobile;
 			isModified = true;
 		}
 
 		if (isModified)
 		{
-			await user.save();
+			await member.save();
 		}
 	}
 
 	await ICICIPaymentRequest.create(
 		{
-			"userId": userId,
+			"memberId": memberId,
 			"icaiMembershipNo": icaiMembershipNo,
 			"ckscMembershipNo": ckscMembershipNo,
 			"name": name,
@@ -281,11 +281,11 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 			"E00332": "Challan Already Generated, Please re-initiate with unique reference number",
 			"E00333": "Referer is null/invalid Referer",
 			"E00334": "Mandatory Parameters Reference No and Request Reference No parameter values are not matched",
-			"E00335": "Transaction Cancelled By User",
+			"E00335": "Transaction Cancelled By Member",
 			"E0801": "FAIL",
-			"E0802": "User Dropped",
-			"E0803": "Canceled by user",
-			"E0804": "User Request arrived but card brand not supported",
+			"E0802": "Member Dropped",
+			"E0803": "Canceled by member",
+			"E0804": "Member Request arrived but card brand not supported",
 			"E0805": "Checkout page rendered Card function not supported",
 			"E0806": "Forwarded / Exceeds withdrawal amount limit",
 			"E0807": "PG Fwd Fail / Issuer Authentication Server failure",
@@ -340,7 +340,7 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 			transactionAmount = receivedPaymentResponse["Transaction Amount"];
 			transactionDate = receivedPaymentResponse["Transaction Date"];
 
-			await activateTheUser(ckscReferenceNo, newCKSCMembershipNo);
+			await activateTheMember(ckscReferenceNo, newCKSCMembershipNo);
 		}
 		else
 		{
@@ -372,7 +372,7 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 			});
 
 		queryString = isPaymentSuccessful + "|"
-			+ paymentRequest[0].userId + "|"
+			+ paymentRequest[0].memberId + "|"
 			+ paymentRequest[0].icaiMembershipNo + "|"
 			+ newCKSCMembershipNo + "|"
 			+ ckscReferenceNo + "|"
@@ -398,19 +398,19 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 	}
 });
 
-const activateTheUser = async (ckscReferenceNo) =>
+const activateTheMember = async (ckscReferenceNo) =>
 {
-	const user = await User.findOne({ "ckscMembershipNo": ckscReferenceNo });
+	const member = await Member.findOne({ "ckscMembershipNo": ckscReferenceNo });
 
-	if (!user)
+	if (!member)
 	{
-		throw new Error("User Not found");
+		throw new Error("Member Not found");
 	}
 
-	user.ckscMembershipNo = await getNextCKSCMembershipNo();
-	user.active = true;
+	member.ckscMembershipNo = await getNextCKSCMembershipNo();
+	member.active = true;
 
-	await user.save();
+	await member.save();
 };
 
 const receivePaymentResponse = asyncHandler(async (req, res) =>
@@ -463,11 +463,11 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 		"E00332": "Challan Already Generated, Please re-initiate with unique reference number",
 		"E00333": "Referer is null/invalid Referer",
 		"E00334": "Mandatory Parameters Reference No and Request Reference No parameter values are not matched",
-		"E00335": "Transaction Cancelled By User",
+		"E00335": "Transaction Cancelled By Member",
 		"E0801": "FAIL",
-		"E0802": "User Dropped",
-		"E0803": "Canceled by user",
-		"E0804": "User Request arrived but card brand not supported",
+		"E0802": "Member Dropped",
+		"E0803": "Canceled by member",
+		"E0804": "Member Request arrived but card brand not supported",
 		"E0805": "Checkout page rendered Card function not supported",
 		"E0806": "Forwarded / Exceeds withdrawal amount limit",
 		"E0807": "PG Fwd Fail / Issuer Authentication Server failure",
@@ -530,7 +530,7 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 	}
 
 	const paymentRequest = await ICICIPaymentRequest.find({ referenceNo: ckscReferenceNo });
-	await reduceThePendingAmount(totalAmount, paymentRequest[0].userId);
+	await reduceThePendingAmount(totalAmount, paymentRequest[0].memberId);
 
 	const paymentResponse = await ICICIPaymentResponse.create(
 		{
@@ -551,16 +551,16 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 			"rs": rs
 		});
 
-	const userPaymentResponse = await UserPayment.create(
+	const memberPaymentResponse = await MemberPayment.create(
 		{
-			"userId": paymentRequest[0].userId,
+			"memberId": paymentRequest[0].memberId,
 			"paymentRequestId": paymentRequest[0]._id,
 			"paymentResponseId": paymentResponse._id,
 			"paymentStatus": "Init -> " + transactionMessage
 		});
 
 	queryString = isPaymentSuccessful + "|"
-		+ paymentRequest[0].userId + "|"
+		+ paymentRequest[0].memberId + "|"
 		+ paymentRequest[0].icaiMembershipNo + "|"
 		+ paymentRequest[0].ckscMembershipNo + "|"
 		+ ckscReferenceNo + "|"
@@ -572,7 +572,7 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 		+ paymentRequest[0].name + "|"
 		+ paymentRequest[0].email + "|"
 		+ paymentRequest[0].mobile + "|"
-		+ userPaymentResponse._id.toString()
+		+ memberPaymentResponse._id.toString()
 		+ paymentRequest[0].paymentType + "|"
 		+ paymentRequest[0].paymentDescription + "|"
 		+ paymentRequest[0].paymentRemarks;
@@ -580,18 +580,18 @@ const receivePaymentResponse = asyncHandler(async (req, res) =>
 	res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 });
 
-const reduceThePendingAmount = async (amountToReduce, userId) =>
+const reduceThePendingAmount = async (amountToReduce, memberId) =>
 {
-	const user = await User.findById(userId);
+	const member = await Member.findById(memberId);
 
-	if (!user)
+	if (!member)
 	{
-		throw new Error("User Not found");
+		throw new Error("Member Not found");
 	}
 
-	user.pendingAmount -= amountToReduce;
+	member.pendingAmount -= amountToReduce;
 
-	await user.save();
+	await member.save();
 };
 
 const verifyTransaction = asyncHandler(async (req, ckscResponse) =>
@@ -626,10 +626,10 @@ const generateEnhancedTimestampId = () =>
 
 const migrateData = async () =>
 {
-	const userPayments = await UserPayment.aggregate([
+	const memberPayments = await MemberPayment.aggregate([
 		{
 			$group: {
-				_id: { userId: "$userId", paymentRequestId: "$paymentRequestId", paymentResponseId: "$paymentResponseId" },
+				_id: { memberId: "$memberId", paymentRequestId: "$paymentRequestId", paymentResponseId: "$paymentResponseId" },
 				ids: { $push: "$_id" },
 				count: { $sum: 1 }
 			}
@@ -641,12 +641,12 @@ const migrateData = async () =>
 		}
 	]);
 
-	for (const group of userPayments)
+	for (const group of memberPayments)
 	{
 		// Skip the first element in the array and delete the rest
 		for (let i = 1; i < group.ids.length; i++)
 		{
-			await UserPayment.deleteOne({ _id: group.ids[i] });
+			await MemberPayment.deleteOne({ _id: group.ids[i] });
 		}
 	}
 };

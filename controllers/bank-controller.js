@@ -5,13 +5,13 @@ const { v4: uuidv4 } = require("uuid");
 const ICICIPaymentRequest = require("../models/icici-payment-request");
 const ICICIPaymentResponse = require("../models/icici-payment-response");
 const EventRegistration = require("../models/event-registration-model");
-const User = require("../models/user-model");
-const UserPayment = require("../models/user-payment");
+const Member = require("../models/member-model");
+const MemberPayment = require("../models/member-payment");
 const { NotFoundError } = require("../middlewares/errors");
 
 const getNextCKSCMembershipNo = async () =>
 {
-	const result = await User.aggregate(
+	const result = await Member.aggregate(
 		[
 			{
 				$match:
@@ -65,13 +65,13 @@ const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, re
 {
 	const type = paymentType === "Event" ? "non-member" : "member";
 
-	const newUser = await User.create(
+	const newMember = await Member.create(
 		{
 			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: amount,
 			mobile, email, active: false, type, remarks
 		});
 
-	return newUser;
+	return newMember;
 };
 
 // Unified function to handle both payment request scenarios
@@ -79,7 +79,7 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 {
 	const request = req.body;
 	const {
-		userId, icaiMembershipNo, name, email, mobile, address, pan,
+		memberId, icaiMembershipNo, name, email, mobile, address, pan,
 		paymentType, remarks, amount, selectedEvent = ""
 	} = request;
 
@@ -87,14 +87,14 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 	const referenceNo = generateEnhancedTimestampId();
 
 	// Handle new member creation for one-time payments, if necessary
-	const newUser = await createNewMemberIfNeeded(isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, amount);
+	const newMember = await createNewMemberIfNeeded(isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, amount);
 
-	const effectiveUserId = newUser ? newUser.id : userId;
+	const effectiveMemberId = newMember ? newMember.id : memberId;
 
 	// Common ICICIPaymentRequest creation logic
 	await ICICIPaymentRequest.create(
 		{
-			userId: effectiveUserId,
+			memberId: effectiveMemberId,
 			icaiMembershipNo, name, email, mobile, address, pan,
 			amount, referenceNo, paymentType,
 			paymentDescription: isOneTimePayment ? selectedEvent : "",
@@ -131,7 +131,7 @@ const constructPaymentURL = (referenceNo, amount, name, mobile, address, pan, em
 	return `${process.env.ICICI_PAY_URL}${queryString}`;
 };
 
-const registerOneTimeUser = asyncHandler(async (req, res) =>
+const registerOneTimeMember = asyncHandler(async (req, res) =>
 {
 	const request = req.body;
 	const {
@@ -140,20 +140,20 @@ const registerOneTimeUser = asyncHandler(async (req, res) =>
 	} = request;
 
 	// Generate unique reference number
-	const newUser = await createNewMemberIfNeeded(true, paymentType, name, icaiMembershipNo, mobile, email, "", remarks, amount);
+	const newMember = await createNewMemberIfNeeded(true, paymentType, name, icaiMembershipNo, mobile, email, "", remarks, amount);
 
-	// Check if newUser was successfully created
-	if (!newUser)
+	// Check if newMember was successfully created
+	if (!newMember)
 	{
-		// Handle the case where user creation failed
-		return res.status(400).json({ message: "Failed to create new user" });
+		// Handle the case where member creation failed
+		return res.status(400).json({ message: "Failed to create new member" });
 	}
 
-	// Create event registration for the new user
+	// Create event registration for the new member
 	const eventRegistrationData =
 	{
 		eventId: selectedEvent, // Assuming this is the ObjectId of the event
-		userId: newUser._id, // Use _id for MongoDB ObjectId reference
+		memberId: newMember._id, // Use _id for MongoDB ObjectId reference
 		amount: amount,
 		paymentStatus: 'unpaid', // Assuming the payment has not been completed yet
 		additionalNotes: remarks,
@@ -231,24 +231,24 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 		{
 			if (!isOneTimePayment)
 			{
-				// await activateTheUser(ckscReferenceNo); // Assuming activateTheUser function exists
-				await reduceThePendingAmount(transactionAmount, paymentRequest[0].userId);
+				// await activateTheMember(ckscReferenceNo); // Assuming activateTheMember function exists
+				await reduceThePendingAmount(transactionAmount, paymentRequest[0].memberId);
 			}
 		}
 
-		const userPaymentResponseDetails =
+		const memberPaymentResponseDetails =
 		{
-			userId: paymentRequest[0].userId,
+			memberId: paymentRequest[0].memberId,
 			iciciPaymentRequestId: paymentRequest[0]._id,
 			iciciPaymentResponseId: paymentResponse._id,
 			paymentStatus: `Init -> ${isPaymentSuccessful ? "Transaction successful" : "Transaction Failed"}`
 		};
 
-		// Assuming UserPayment.create function exists and is used to log/track user payment statuses
-		const userPaymentResponse = await UserPayment.create(userPaymentResponseDetails);
+		// Assuming MemberPayment.create function exists and is used to log/track member payment statuses
+		const memberPaymentResponse = await MemberPayment.create(memberPaymentResponseDetails);
 
 		// Redirect to a response page with a query string that encapsulates the result
-		const queryString = buildQueryString(isPaymentSuccessful, responseCode, paymentRequest[0], userPaymentResponse._id, paymentResponseDetails);
+		const queryString = buildQueryString(isPaymentSuccessful, responseCode, paymentRequest[0], memberPaymentResponse._id, paymentResponseDetails);
 		res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 	}
 	catch (ex) 
@@ -264,7 +264,7 @@ function buildQueryString(isPaymentSuccessful, responseCode, paymentRequest, pay
 
 	if (isPaymentSuccessful) 
 	{
-		baseQuery += `|${paymentRequest.userId}|${paymentRequest.icaiMembershipNo}|${paymentRequest.ckscMembershipNo}|${details.ckscReferenceNo}|${details.iciciReferenceNo}|${details.transactionDate}|${details.transactionAmount}|${paymentRequest.paymentMode}|${responseCode}|${paymentRequest.name}|${paymentRequest.email}|${paymentRequest.mobile}|${paymentResponseId}|${paymentRequest.paymentType}|${paymentRequest.paymentDescription}|${paymentRequest.paymentRemarks}`;
+		baseQuery += `|${paymentRequest.memberId}|${paymentRequest.icaiMembershipNo}|${paymentRequest.ckscMembershipNo}|${details.ckscReferenceNo}|${details.iciciReferenceNo}|${details.transactionDate}|${details.transactionAmount}|${paymentRequest.paymentMode}|${responseCode}|${paymentRequest.name}|${paymentRequest.email}|${paymentRequest.mobile}|${paymentResponseId}|${paymentRequest.paymentType}|${paymentRequest.paymentDescription}|${paymentRequest.paymentRemarks}`;
 	}
 
 	return baseQuery;
@@ -318,11 +318,11 @@ function getErrorDescription(code)
 		"E00332": "Challan Already Generated, Please re-initiate with unique reference number",
 		"E00333": "Referer is null/invalid Referer",
 		"E00334": "Mandatory Parameters Reference No and Request Reference No parameter values are not matched",
-		"E00335": "Transaction Cancelled By User",
+		"E00335": "Transaction Cancelled By Member",
 		"E0801": "FAIL",
-		"E0802": "User Dropped",
-		"E0803": "Canceled by user",
-		"E0804": "User Request arrived but card brand not supported",
+		"E0802": "Member Dropped",
+		"E0803": "Canceled by member",
+		"E0804": "Member Request arrived but card brand not supported",
 		"E0805": "Checkout page rendered Card function not supported",
 		"E0806": "Forwarded / Exceeds withdrawal amount limit",
 		"E0807": "PG Fwd Fail / Issuer Authentication Server failure",
@@ -338,33 +338,33 @@ function getErrorDescription(code)
 	return errorCodes[code] || 'Transaction Failed';
 }
 
-const activateTheUser = async (ckscReferenceNo) =>
+const activateTheMember = async (ckscReferenceNo) =>
 {
-	const user = await User.findOne({ "ckscMembershipNo": ckscReferenceNo });
+	const member = await Member.findOne({ "ckscMembershipNo": ckscReferenceNo });
 
-	if (!user)
-	{
-		throw new NotFoundError("User not found");
-	}
-
-	user.ckscMembershipNo = await getNextCKSCMembershipNo();
-	user.active = true;
-
-	await user.save();
-};
-
-const reduceThePendingAmount = async (amountToReduce, userId) =>
-{
-	const user = await User.findById(userId);
-
-	if (!user)
+	if (!member)
 	{
 		throw new NotFoundError("Member not found");
 	}
 
-	user.pendingAmount -= amountToReduce;
+	member.ckscMembershipNo = await getNextCKSCMembershipNo();
+	member.active = true;
 
-	await user.save();
+	await member.save();
+};
+
+const reduceThePendingAmount = async (amountToReduce, memberId) =>
+{
+	const member = await Member.findById(memberId);
+
+	if (!member)
+	{
+		throw new NotFoundError("Member not found");
+	}
+
+	member.pendingAmount -= amountToReduce;
+
+	await member.save();
 };
 
 const encryptData = ((plainText, outputEncoding = "base64") =>
@@ -394,5 +394,5 @@ const generateEnhancedTimestampId = () =>
 
 module.exports =
 {
-	fetchOneTimePaymentRequestURL, fetchPaymentRequestURL, receiveOneTimePaymentResponse, receivePaymentResponse, getNextCKSCMembershipNo, registerOneTimeUser
+	fetchOneTimePaymentRequestURL, fetchPaymentRequestURL, receiveOneTimePaymentResponse, receivePaymentResponse, getNextCKSCMembershipNo, registerOneTimeMember
 };
