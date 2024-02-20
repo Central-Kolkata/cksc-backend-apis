@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 
 const iciciPaymentRequestSchema = mongoose.Schema(
 	{
-		memberId:
+		userId:
 		{
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Member'
+			ref: 'User'
 		},
 		icaiMembershipNo:
 		{
@@ -39,7 +39,7 @@ const iciciPaymentRequestSchema = mongoose.Schema(
 		{
 			type: Number
 		},
-		ckscReferenceNo:
+		referenceNo:
 		{
 			type: Number
 		},

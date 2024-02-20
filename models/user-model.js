@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const validator = require("validator");
+const validator = require("validator"); // npm install validator
 
-const memberSchema = mongoose.Schema(
+const userSchema = mongoose.Schema(
 	{
 		name:
 		{
@@ -10,7 +10,8 @@ const memberSchema = mongoose.Schema(
 		},
 		icaiMembershipNo:
 		{
-			type: String
+			type: String,
+			required: [true, "ICAI Membership Number is mandatory"]
 		},
 		ckscMembershipNo:
 		{
@@ -36,34 +37,28 @@ const memberSchema = mongoose.Schema(
 		},
 		dateOfAnniversary:
 		{
-			type: Date
+			type: Date,
+			// Optional field, no required validation needed
 		},
 		spouseName:
 		{
-			type: String
+			type: String,
+			// Optional field, no required validation needed
 		},
-		transactions:
-			[{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "MemberPayment",
-				default: []
-			}],
-		eventIds:
-			[{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Event",
-				default: []
-			}],
 		status:
 		{
 			type: String,
-			enum: ['active', 'inactive', 'pending', 'deleted']
+			enum: ['active', 'inactive', 'deleted']
 		},
 		type:
 		{
 			type: String,
 			enum: ['member', 'non-member', 'patron'],
 			default: 'member'
+		},
+		remarks:
+		{
+			type: String
 		}
 	},
 	{
@@ -71,4 +66,4 @@ const memberSchema = mongoose.Schema(
 	}
 );
 
-module.exports = mongoose.model("Member", memberSchema);
+module.exports = mongoose.model("User", userSchema);

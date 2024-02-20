@@ -3,10 +3,9 @@ const asyncHandler = require("express-async-handler");
 const Venue = require("../models/venue-model");
 const Event = require("../models/event-model");
 const EventRegistration = require("../models/event-registration-model");
-const MemberPayment = require("../models/member-payment");
+const UserPayment = require("../models/user-payment");
 const ICICIPaymentRequest = require("../models/icici-payment-request");
-const ICICIPaymentResponse = require("../models/icici-payment-response");
-const Member = require("../models/member-model");
+const User = require("../models/user-model");
 const axios = require("axios");
 
 const fetchVenues = asyncHandler(async (req, res) =>
@@ -109,42 +108,28 @@ const deleteEvent = asyncHandler(async (req, res) =>
 
 const register = asyncHandler(async (req, res) =>
 {
-	const { memberId, eventId, remarks, iciciReferenceNo } = req.body;
-	let memberPayment;
+	const { userId, eventId, remarks } = req.body;
 
-	// Check if the member has already registered for this event
+	// Check if the user has already registered for this event
 	const existingRegistration = await EventRegistration.findOne(
 		{
-			memberId: memberId,
+			userId: userId,
 			eventId: eventId,
 			status: 'confirmed'
 		});
 
-	// if (existingRegistration) 
-	// {
-	// 	return res.status(400).json({ message: "Member has already registered for this event." });
-	// }
-
-	const paymentResponse = await ICICIPaymentResponse.findOne({ iciciReferenceNo });
-
-	if (paymentResponse)
+	if (existingRegistration) 
 	{
-		memberPayment = await MemberPayment.findOne({ iciciPaymentResponseId: paymentResponse._id });
+		return res.status(400).json({ message: "Member has already registered for this event." });
 	}
-
-	console.log(memberPayment);
 
 	const registrationData =
 	{
 		...req.body,
-		remarks,
-		transactionAmount: paymentResponse?.transactionAmount,
-		transactionRefNo: memberPayment?._id
+		additionalNotes: remarks
 	};
 
 	delete registrationData.remarks;
-
-	console.log(registrationData);
 
 	// Proceed to create a new event registration
 	await EventRegistration.create(registrationData);
@@ -152,15 +137,15 @@ const register = asyncHandler(async (req, res) =>
 	res.status(201).json({ message: "Event Registration Successful!" });
 });
 
-const fetchEventMembers = asyncHandler(async (req, res) =>
+const fetchEventUsers = asyncHandler(async (req, res) =>
 {
 	const { eventId } = req.params;
 
 	try
 	{
-		// Step 1: Fetch registrations with memberId populated
+		// Step 1: Fetch registrations with userId populated
 		const registrations = await EventRegistration.find({ eventId: eventId })
-			.populate('memberId')
+			.populate('userId')
 			.lean();
 
 		if (!registrations || registrations.length === 0)
@@ -169,18 +154,18 @@ const fetchEventMembers = asyncHandler(async (req, res) =>
 		}
 
 		// Prepare the response array
-		const memberDetailsWithRegistrationDate = [];
+		const userDetailsWithRegistrationDate = [];
 
-		// Step 2 & 3: Iterate and conditionally fetch MemberPayments
+		// Step 2 & 3: Iterate and conditionally fetch UserPayments
 		for (const registration of registrations)
 		{
 			let amountPaid = '-'; // Default value
 			let paymentRemarks = registration.additionalNotes || ''; // Use additionalNotes if available
 
 			// Only proceed if ckscMembershipNo is null and transactionRefNo is a valid ObjectId
-			if (!registration.memberId?.ckscMembershipNo && mongoose.Types.ObjectId.isValid(registration.transactionRefNo))
+			if (!registration.userId?.ckscMembershipNo && mongoose.Types.ObjectId.isValid(registration.transactionRefNo))
 			{
-				const memberPayment = await MemberPayment.findById(registration.transactionRefNo)
+				const userPayment = await UserPayment.findById(registration.transactionRefNo)
 					.populate(
 						{
 							path: 'iciciPaymentRequestId',
@@ -188,20 +173,20 @@ const fetchEventMembers = asyncHandler(async (req, res) =>
 						})
 					.lean();
 
-				if (memberPayment && memberPayment.iciciPaymentRequestId)
+				if (userPayment && userPayment.iciciPaymentRequestId)
 				{
-					amountPaid = memberPayment.iciciPaymentRequestId.amount || amountPaid;
+					amountPaid = userPayment.iciciPaymentRequestId.amount || amountPaid;
 					// Override paymentRemarks only if additionalNotes is not present
-					if (!registration.additionalNotes && memberPayment.iciciPaymentRequestId.paymentRemarks)
+					if (!registration.additionalNotes && userPayment.iciciPaymentRequestId.paymentRemarks)
 					{
-						paymentRemarks = memberPayment.iciciPaymentRequestId.paymentRemarks;
+						paymentRemarks = userPayment.iciciPaymentRequestId.paymentRemarks;
 					}
 				}
 			}
 
-			memberDetailsWithRegistrationDate.push(
+			userDetailsWithRegistrationDate.push(
 				{
-					...registration.memberId,
+					...registration.userId,
 					registrationId: registration._id.toString(),
 					amountPaid,
 					paymentRemarks, // This now correctly reflects the logic you wanted
@@ -210,7 +195,7 @@ const fetchEventMembers = asyncHandler(async (req, res) =>
 				});
 		}
 
-		res.status(200).json(memberDetailsWithRegistrationDate);
+		res.status(200).json(userDetailsWithRegistrationDate);
 	}
 	catch (error)
 	{
@@ -223,5 +208,5 @@ module.exports =
 {
 	fetchVenues, createVenue, updateVenue, deleteVenue,
 	fetchEvents, createEvent, updateEvent, deleteEvent,
-	register, fetchEventMembers, fetchUpcomingEvents
+	register, fetchEventUsers, fetchUpcomingEvents
 };
