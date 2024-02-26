@@ -37,13 +37,11 @@ const userSchema = mongoose.Schema(
 		},
 		dateOfAnniversary:
 		{
-			type: Date,
-			// Optional field, no required validation needed
+			type: Date
 		},
 		spouseName:
 		{
-			type: String,
-			// Optional field, no required validation needed
+			type: String
 		},
 		status:
 		{
