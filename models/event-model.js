@@ -14,6 +14,10 @@ const eventSchema = mongoose.Schema(
 		{
 			type: Date
 		},
+		registrationEndTime:
+		{
+			type: Date
+		},
 		eventDuration:
 		{
 			type: Number
