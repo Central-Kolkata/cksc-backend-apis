@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const iciciPaymentResponseSchema = mongoose.Schema(
 	{
+		iciciPaymentRequestId:
+		{
+			type: mongoose.Schema.Types.ObjectId
+		},
 		ckscReferenceNo:
 		{
 			type: String

@@ -4,8 +4,8 @@
 // const { v4: uuidv4 } = require("uuid");
 // const PaymentRequest = require("../models/payment-request");
 // const PaymentResponse = require("../models/payment-response");
-// const UserPayment = require("../models/user-payment");
-// const User = require("../models/user-model");
+// const MemberPayment = require("../models/member-payment");
+// const Member = require("../models/member-model");
 // const crypto = require("crypto");
 // var unirest = require("unirest");
 
@@ -13,7 +13,7 @@
 // {
 // 	var request = req.body;
 
-// 	let userId = request.userId;
+// 	let memberId = request.memberId;
 // 	let icaiMembershipNo = request.icaiMembershipNo;
 // 	let ckscMembershipNo = request.ckscMembershipNo;
 
@@ -38,7 +38,7 @@
 
 // 	await PaymentRequest.create(
 // 		{
-// 			"userId": userId,
+// 			"memberId": memberId,
 // 			"icaiMembershipNo": icaiMembershipNo,
 // 			"ckscMembershipNo": ckscMembershipNo,
 // 			"productId": productId,
@@ -130,9 +130,9 @@
 // 			"udf4": response.udf4
 // 		});
 
-// 	const userPaymentResponse = await UserPayment.create(
+// 	const memberPaymentResponse = await MemberPayment.create(
 // 		{
-// 			"userId": paymentRequest[0].userId,
+// 			"memberId": paymentRequest[0].memberId,
 // 			"paymentRequestId": paymentRequest[0]._id,
 // 			"paymentResponseId": paymentResponse._id,
 // 			"paymentStatus": "Init -> " + transactionMessage
@@ -140,10 +140,10 @@
 
 // 	const success = transactionMessage === "Transaction successful";
 
-// 	let queryString = success + "|" + paymentRequest[0].userId + "|" + paymentRequest[0].icaiMembershipNo + "|" + paymentRequest[0].ckscMembershipNo + "|" + response.mer_txn + "|" + response.date + "|" + response.CardNumber + "|"
+// 	let queryString = success + "|" + paymentRequest[0].memberId + "|" + paymentRequest[0].icaiMembershipNo + "|" + paymentRequest[0].ckscMembershipNo + "|" + response.mer_txn + "|" + response.date + "|" + response.CardNumber + "|"
 // 		+ response.amt + "|" + response.surcharge + "|" + response.bank_txn + "|"
 // 		+ response.ipg_txn_id + "|" + response.bank_name + "|" + response.desc + "|"
-// 		+ response.udf1 + "|" + response.udf2 + "|" + response.udf3 + "|" + response.udf4 + "|" + userPaymentResponse._id.toString();
+// 		+ response.udf1 + "|" + response.udf2 + "|" + response.udf3 + "|" + response.udf4 + "|" + memberPaymentResponse._id.toString();
 
 // 	res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 // });
@@ -155,7 +155,7 @@
 // 	let merchTxnId = request.merchantTransactionId;
 // 	let amount = request.amount;
 // 	let date = request.transactionDate;
-// 	let userPaymentId = request.userPaymentId;
+// 	let memberPaymentId = request.memberPaymentId;
 // 	let merchId = process.env.LOGIN_ID;
 
 // 	let req_enc_key = process.env.REQUEST_ENCRYPTION_KEY;
@@ -224,14 +224,14 @@
 
 // 		if (respArray[0]["verified"] === "SUCCESS")
 // 		{
-// 			const userPayment = await UserPayment.findByIdAndUpdate(userPaymentId, { "paymentStatus": "SUCCESS" }, { new: true });
-// 			await User.findByIdAndUpdate(userPayment.userId.toString(), { "$inc": { "pendingAmount": amount * -1 } });
+// 			const memberPayment = await MemberPayment.findByIdAndUpdate(memberPaymentId, { "paymentStatus": "SUCCESS" }, { new: true });
+// 			await Member.findByIdAndUpdate(memberPayment.memberId.toString(), { "$inc": { "pendingAmount": amount * -1 } });
 
 // 			ckscResponse.status(200).json("SUCCESS");
 // 		}
 // 		else
 // 		{
-// 			await UserPayment.findByIdAndUpdate(userPaymentId, { "paymentStatus": "FAILURE in REQUERY" });
+// 			await MemberPayment.findByIdAndUpdate(memberPaymentId, { "paymentStatus": "FAILURE in REQUERY" });
 // 			ckscResponse.status(500).json("Requery Error");
 // 		}
 // 	});

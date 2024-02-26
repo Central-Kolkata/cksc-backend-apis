@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const userPaymentSchema = mongoose.Schema(
+const memberPaymentSchema = mongoose.Schema(
 	{
-		userId:
+		memberId:
 		{
 			type: Schema.Types.ObjectId,
-			ref: "User"
+			ref: "Member"
 		},
 		iciciPaymentRequestId:
 		{
@@ -18,14 +18,14 @@ const userPaymentSchema = mongoose.Schema(
 			type: Schema.Types.ObjectId,
 			ref: "ICICIPaymentResponse"
 		},
-
 		paymentStatus:
 		{
-			type: String
+			type: String,
+			enum: ["paid", "unpaid", "pending"]
 		}
 	},
 	{
 		timestamps: true
 	});
 
-module.exports = mongoose.model("UserPayment", userPaymentSchema);
+module.exports = mongoose.model("MemberPayment", memberPaymentSchema);

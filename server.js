@@ -27,7 +27,7 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
 
-app.use(`/api/users`, require("./routes/user-routes"));
+app.use(`/api/members`, require("./routes/member-routes"));
 // app.use(`/api/atom`, require("./routes/atom-routes"));
 app.use(`/api/icici`, require("./routes/icici-routes"));
 app.use(`/api/bank`, require("./routes/bank-routes"));
