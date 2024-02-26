@@ -126,6 +126,8 @@ const register = asyncHandler(async (req, res) =>
 		return res.status(400).json({ message: "Member has already registered for this event." });
 	}
 
+	const event = await Event.findById(eventId, "eventAmount");
+	const member = await Member.findById(memberId, "type pendingAmount");
 	const paymentResponse = await ICICIPaymentResponse.findOne({ iciciReferenceNo });
 
 	if (paymentResponse)
@@ -133,15 +135,16 @@ const register = asyncHandler(async (req, res) =>
 		memberPayment = await MemberPayment.findOne({ iciciPaymentResponseId: paymentResponse._id });
 	}
 
-	const member = await Member.findById(memberId, "type");
-
 	const registrationData =
 	{
 		...req.body,
 		remarks,
 		transactionAmount: paymentResponse?.transactionAmount,
 		transactionRefNo: memberPayment?._id,
-		memberType: member.type
+		memberType: member.type,
+		currentPendingAmount: member.pendingAmount,
+		eventAmount: event.eventAmount,
+		paymentStatus: memberPayment?.paymentStatus
 	};
 
 	// Proceed to create a new event registration
@@ -173,7 +176,7 @@ const fetchEventMembers = asyncHandler(async (req, res) =>
 		for (const registration of registrations)
 		{
 			let amountPaid = '-'; // Default value
-			let paymentRemarks = registration.additionalNotes || ''; // Use additionalNotes if available
+			let paymentRemarks = registration.remarks || ''; // Use additionalNotes if available
 
 			// Only proceed if ckscMembershipNo is null and transactionRefNo is a valid ObjectId
 			if (!registration.memberId?.ckscMembershipNo && mongoose.Types.ObjectId.isValid(registration.transactionRefNo))
@@ -189,7 +192,7 @@ const fetchEventMembers = asyncHandler(async (req, res) =>
 				if (memberPayment && memberPayment.iciciPaymentRequestId)
 				{
 					amountPaid = memberPayment.iciciPaymentRequestId.amount || amountPaid;
-					// Override paymentRemarks only if additionalNotes is not present
+
 					if (!registration.additionalNotes && memberPayment.iciciPaymentRequestId.paymentRemarks)
 					{
 						paymentRemarks = memberPayment.iciciPaymentRequestId.paymentRemarks;

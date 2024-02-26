@@ -53,8 +53,8 @@ const eventRegistrationSchema = mongoose.Schema(
 		paymentStatus:
 		{
 			type: String,
-			enum: ['paid', 'unpaid', 'NA'],
-			default: 'NA'
+			enum: ['paid', 'unpaid', 'pending'],
+			default: 'pending'
 		},
 		remarks:
 		{
