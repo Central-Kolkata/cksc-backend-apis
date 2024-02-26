@@ -95,4 +95,4 @@ const paymentResponseSchema = mongoose.Schema(
 		timestamps: true
 	});
 
-module.exports = mongoose.model("PaymentResponse", paymentResponseSchema);
+// module.exports = mongoose.model("PaymentResponse", paymentResponseSchema);
