@@ -175,39 +175,22 @@ const fetchEventMembers = asyncHandler(async (req, res) =>
 		// Step 2 & 3: Iterate and conditionally fetch MemberPayments
 		for (const registration of registrations)
 		{
-			let amountPaid = '-'; // Default value
-			let paymentRemarks = registration.remarks || ''; // Use additionalNotes if available
-
-			// Only proceed if ckscMembershipNo is null and transactionRefNo is a valid ObjectId
-			if (!registration.memberId?.ckscMembershipNo && mongoose.Types.ObjectId.isValid(registration.transactionRefNo))
-			{
-				const memberPayment = await MemberPayment.findById(registration.transactionRefNo)
-					.populate(
-						{
-							path: 'iciciPaymentRequestId',
-							select: 'amount paymentRemarks' // Selecting amount and paymentRemarks
-						})
-					.lean();
-
-				if (memberPayment && memberPayment.iciciPaymentRequestId)
-				{
-					amountPaid = memberPayment.iciciPaymentRequestId.amount || amountPaid;
-
-					if (!registration.additionalNotes && memberPayment.iciciPaymentRequestId.paymentRemarks)
-					{
-						paymentRemarks = memberPayment.iciciPaymentRequestId.paymentRemarks;
-					}
-				}
-			}
 
 			memberDetailsWithRegistrationDate.push(
 				{
-					...registration.memberId,
-					registrationId: registration._id.toString(),
-					amountPaid,
-					paymentRemarks, // This now correctly reflects the logic you wanted
-					additionalNotes: registration.additionalNotes || 'N/A',
+					memberId: registration.memberId._id,
+					memberName: registration.memberId.name,
+					icaiMembershipNo: registration.memberId.icaiMembershipNo,
+					ckscMembershipNo: registration.memberId.ckscMembershipNo,
+					mobile: registration.memberId.mobile,
+					email: registration.memberId.email,
+
+					transactionRefNo: registration.transactionRefNo,
+					transactionAmount: registration.transactionAmount,
+					currentPendingAmount: registration.currentPendingAmount,
+					paymentStatus: registration.paymentStatus,
 					registrationDate: registration.registrationDate,
+					remarks: registration.remarks
 				});
 		}
 

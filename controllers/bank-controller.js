@@ -251,7 +251,6 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 
 		// Redirect to a response page with a query string that encapsulates the result
 		const queryString = buildQueryString(isPaymentSuccessful, responseCode, paymentRequest[0], memberPaymentResponse._id, paymentResponseDetails);
-		console.log(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 
 		res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 	}
