@@ -82,6 +82,7 @@ const createEvent = asyncHandler(async (req, res) =>
 const updateEvent = asyncHandler(async (req, res) =>
 {
 	const event = await Event.findById(req.params.id);
+
 	if (!event)
 	{
 		res.status(400);
@@ -120,10 +121,10 @@ const register = asyncHandler(async (req, res) =>
 			status: 'confirmed'
 		});
 
-	// if (existingRegistration) 
-	// {
-	// 	return res.status(400).json({ message: "Member has already registered for this event." });
-	// }
+	if (existingRegistration) 
+	{
+		return res.status(400).json({ message: "Member has already registered for this event." });
+	}
 
 	const paymentResponse = await ICICIPaymentResponse.findOne({ iciciReferenceNo });
 
@@ -132,19 +133,16 @@ const register = asyncHandler(async (req, res) =>
 		memberPayment = await MemberPayment.findOne({ iciciPaymentResponseId: paymentResponse._id });
 	}
 
-	console.log(memberPayment);
+	const member = await Member.findById(memberId, "type");
 
 	const registrationData =
 	{
 		...req.body,
 		remarks,
 		transactionAmount: paymentResponse?.transactionAmount,
-		transactionRefNo: memberPayment?._id
+		transactionRefNo: memberPayment?._id,
+		memberType: member.type
 	};
-
-	delete registrationData.remarks;
-
-	console.log(registrationData);
 
 	// Proceed to create a new event registration
 	await EventRegistration.create(registrationData);

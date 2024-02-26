@@ -34,7 +34,7 @@ const eventSchema = mongoose.Schema(
 		freeForCKCAMember:
 		{
 			type: Boolean,
-			default: false
+			default: true
 		},
 		eventAmount:
 		{

@@ -50,25 +50,25 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) => fetchPaymentRequ
 const receiveOneTimePaymentResponse = asyncHandler(async (req, res) => handlePaymentResponse(req, res, true));
 const receivePaymentResponse = asyncHandler(async (req, res) => handlePaymentResponse(req, res));
 
-const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, remarks = "", amount = 0) =>
+const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, amount = 0) =>
 {
 	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event"))
 	{
-		return await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, "", paymentType, amount, remarks);
+		return await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, "", paymentType, amount);
 	}
 
 	return null;
 };
 
 // Function to handle new member creation
-const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount = 0, remarks = "") =>
+const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount = 0) =>
 {
 	const type = paymentType === "Event" ? "non-member" : "member";
 
 	const newMember = await Member.create(
 		{
 			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: amount,
-			mobile, email, active: false, type, remarks
+			mobile, email, active: false, type
 		});
 
 	return newMember;
@@ -139,8 +139,10 @@ const registerOneTimeMember = asyncHandler(async (req, res) =>
 		paymentType, remarks, amount, selectedEvent
 	} = request;
 
+	const memberType = "non-member";
+
 	// Generate unique reference number
-	const newMember = await createNewMemberIfNeeded(true, paymentType, name, icaiMembershipNo, mobile, email, "", remarks, amount);
+	const newMember = await createNewMemberIfNeeded(true, paymentType, name, icaiMembershipNo, mobile, email, "", amount);
 
 	// Check if newMember was successfully created
 	if (!newMember)
@@ -156,8 +158,8 @@ const registerOneTimeMember = asyncHandler(async (req, res) =>
 		memberId: newMember._id, // Use _id for MongoDB ObjectId reference
 		amount: amount,
 		paymentStatus: 'unpaid', // Assuming the payment has not been completed yet
-		additionalNotes: remarks,
-		// Include other fields as necessary
+		remarks,
+		memberType
 	};
 
 	if (request.transactionRefNo && mongoose.Types.ObjectId.isValid(request.transactionRefNo))
