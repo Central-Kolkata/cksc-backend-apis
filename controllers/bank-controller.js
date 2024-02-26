@@ -243,7 +243,7 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 			memberId: paymentRequest[0].memberId,
 			iciciPaymentRequestId: paymentRequest[0]._id,
 			iciciPaymentResponseId: paymentResponse._id,
-			paymentStatus: `Init -> ${isPaymentSuccessful ? "Transaction successful" : "Transaction Failed"}`
+			paymentStatus: `${isPaymentSuccessful ? "paid" : "unpaid"}`
 		};
 
 		// Assuming MemberPayment.create function exists and is used to log/track member payment statuses
@@ -251,7 +251,9 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 
 		// Redirect to a response page with a query string that encapsulates the result
 		const queryString = buildQueryString(isPaymentSuccessful, responseCode, paymentRequest[0], memberPaymentResponse._id, paymentResponseDetails);
-		res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
+		console.log(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
+
+		res.json(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 	}
 	catch (ex) 
 	{
