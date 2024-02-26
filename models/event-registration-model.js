@@ -40,6 +40,12 @@ const eventRegistrationSchema = mongoose.Schema(
 		{
 			type: Number
 		},
+		memberType:
+		{
+			type: String,
+			enum: ['member', 'non-member', 'patron'],
+			default: 'member'
+		},
 		paymentStatus:
 		{
 			type: String,

@@ -26,7 +26,7 @@ const eventSchema = mongoose.Schema(
 		freeEventForCKCA:
 		{
 			type: Boolean,
-			default: false
+			default: true
 		},
 		eventAmount:
 		{
