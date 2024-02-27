@@ -96,7 +96,9 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 		{
 			memberId: effectiveMemberId,
 			icaiMembershipNo, name, email, mobile, address, pan,
-			amount, referenceNo, paymentType,
+			amount,
+			ckscReferenceNo: referenceNo,
+			paymentType,
 			paymentDescription: isOneTimePayment ? selectedEvent : "",
 			paymentRemarks: remarks,
 			ckscMembershipNo: ""
@@ -201,7 +203,7 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 			} = req;
 
 		const isPaymentSuccessful = responseCode === "E000";
-		const paymentRequest = await ICICIPaymentRequest.find({ referenceNo: ckscReferenceNo });
+		const paymentRequest = await ICICIPaymentRequest.find({ ckscReferenceNo: ckscReferenceNo });
 
 		if (!paymentRequest || paymentRequest.length === 0) 
 		{
