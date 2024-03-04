@@ -78,17 +78,17 @@ const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, re
 const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = false) =>
 {
 	const request = req.body;
-	const {
-		memberId, icaiMembershipNo, name, email, mobile, address, pan,
-		paymentType, remarks, amount, selectedEvent = ""
-	} = request;
+	const
+		{
+			memberId, icaiMembershipNo, name, email, mobile, address, pan,
+			paymentType, remarks, amount, amountAfterWaiver, selectedEvent = ""
+		} = request;
 
 	// Generate unique reference number
 	const referenceNo = generateEnhancedTimestampId();
 
 	// Handle new member creation for one-time payments, if necessary
 	const newMember = await createNewMemberIfNeeded(isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, amount);
-
 	const effectiveMemberId = newMember ? newMember.id : memberId;
 
 	// Common ICICIPaymentRequest creation logic
@@ -96,7 +96,7 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 		{
 			memberId: effectiveMemberId,
 			icaiMembershipNo, name, email, mobile, address, pan,
-			amount,
+			amount, amountAfterWaiver,
 			ckscReferenceNo: referenceNo,
 			paymentType,
 			paymentDescription: isOneTimePayment ? selectedEvent : "",
@@ -104,8 +104,10 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 			ckscMembershipNo: ""
 		});
 
+	// In both the cases - with waiver or without waiver, the user will be paying `amountAfterWaiver` only.
+
 	// Construct and send the payment URL
-	const paymentURL = constructPaymentURL(referenceNo, amount, name, mobile, address, pan, email,
+	const paymentURL = constructPaymentURL(referenceNo, amountAfterWaiver, name, mobile, address, pan, email,
 		isOneTimePayment ? process.env.ICICI_ONETIME_RU : process.env.ICICI_RETURN_URL);
 
 	res.json(paymentURL);
@@ -203,12 +205,16 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 			} = req;
 
 		const isPaymentSuccessful = responseCode === "E000";
-		const paymentRequest = await ICICIPaymentRequest.find({ ckscReferenceNo: ckscReferenceNo });
+		const iciciPaymentRequest = await ICICIPaymentRequest.find({ ckscReferenceNo: ckscReferenceNo });
 
-		if (!paymentRequest || paymentRequest.length === 0) 
+		if (!iciciPaymentRequest || iciciPaymentRequest.length === 0) 
 		{
 			return res.status(404).json({ error: "Payment request not found" });
 		}
+
+		let dbAmount = iciciPaymentRequest[0].amount;
+
+		transactionAmount = dbAmount;
 
 		let paymentResponseDetails =
 		{
@@ -229,22 +235,21 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 			rs
 		};
 
-		const paymentResponse = await ICICIPaymentResponse.create(paymentResponseDetails);
+		const iciciPaymentResponse = await ICICIPaymentResponse.create(paymentResponseDetails);
 
 		if (isPaymentSuccessful) 
 		{
 			if (!isOneTimePayment)
 			{
-				// await activateTheMember(ckscReferenceNo); // Assuming activateTheMember function exists
-				await reduceThePendingAmount(transactionAmount, paymentRequest[0].memberId);
+				await reduceThePendingAmount(transactionAmount, iciciPaymentRequest[0].memberId);
 			}
 		}
 
 		const memberPaymentResponseDetails =
 		{
-			memberId: paymentRequest[0].memberId,
-			iciciPaymentRequestId: paymentRequest[0]._id,
-			iciciPaymentResponseId: paymentResponse._id,
+			memberId: iciciPaymentRequest[0].memberId,
+			iciciPaymentRequestId: iciciPaymentRequest[0]._id,
+			iciciPaymentResponseId: iciciPaymentResponse._id,
 			paymentStatus: `${isPaymentSuccessful ? "paid" : "unpaid"}`
 		};
 
@@ -252,7 +257,7 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 		const memberPaymentResponse = await MemberPayment.create(memberPaymentResponseDetails);
 
 		// Redirect to a response page with a query string that encapsulates the result
-		const queryString = buildQueryString(isPaymentSuccessful, responseCode, paymentRequest[0], memberPaymentResponse._id, paymentResponseDetails);
+		const queryString = buildQueryString(isPaymentSuccessful, responseCode, iciciPaymentRequest[0], memberPaymentResponse._id, paymentResponseDetails);
 
 		res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 	}
@@ -342,21 +347,6 @@ function getErrorDescription(code)
 
 	return errorCodes[code] || 'Transaction Failed';
 }
-
-const activateTheMember = async (ckscReferenceNo) =>
-{
-	const member = await Member.findOne({ "ckscMembershipNo": ckscReferenceNo });
-
-	if (!member)
-	{
-		throw new NotFoundError("Member not found");
-	}
-
-	member.ckscMembershipNo = await getNextCKSCMembershipNo();
-	member.active = true;
-
-	await member.save();
-};
 
 const reduceThePendingAmount = async (amountToReduce, memberId) =>
 {

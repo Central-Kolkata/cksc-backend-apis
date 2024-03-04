@@ -39,6 +39,11 @@ const iciciPaymentRequestSchema = mongoose.Schema(
 		{
 			type: Number
 		},
+		amountAfterWaiver:
+		{
+			type: Number,
+			default: 0
+		},
 		ckscReferenceNo:
 		{
 			type: Number
