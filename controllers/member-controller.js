@@ -192,54 +192,7 @@ const memberTransactions = asyncHandler(async (req, res) =>
 
 const asdf = asyncHandler(async (req, res) =>
 {
-	const eventId = "65c3ce1d3566840ec78fea40";
-
-	try
-	{
-		// Fetch the updated registrations
-		const updatedRegistrations = await EventRegistration.find({ eventId: mongoose.Types.ObjectId(eventId) })
-			.populate('memberId')
-			.lean();
-
-		let i = 1;
-		// Begin HTML table
-		let html = '<table border="1"><tr><th>S.N.</th><th>Registration ID</th><th>Member ID</th><th>Amount</th><th>Payment Status</th><th>Txn Ref No</th><th>Name</th><th>ICAI Membership No</th><th>CKSC Membership No</th><th>Mobile</th><th>Email</th><th>Remarks</th><th>Additional Notes</th></tr>';
-
-		// Loop over each updated registration and add a row to the HTML table
-		updatedRegistrations.forEach((registration) =>
-		{
-			if (!registration.memberId)
-			{
-				console.log(`Skipping registration with ID: ${registration._id} because memberId is null`);
-				return;
-			}
-
-			html += `<tr>
-				<td>${i++}</td>
-                <td>${registration._id}</td>
-                <td>${registration.memberId._id}</td>
-                <td>${registration.amount || 'N/A'}</td>
-                <td>${registration.paymentStatus}</td>
-                <td>${registration.transactionRefNo}</td>
-                <td>${registration.memberId.name}</td>
-                <td>${registration.memberId.icaiMembershipNo}</td>
-                <td>${registration.memberId.ckscMembershipNo || 'N/A'}</td>
-                <td>${registration.memberId.mobile}</td>
-                <td>${registration.memberId.email}</td>
-                <td>${registration.memberId.remarks || 'N/A'}</td>
-                <td>${registration.additionalNotes || 'N/A'}</td>
-            </tr>`;
-		});
-
-		// End HTML table
-		html += '</table>';
-
-		// Send HTML response
-		res.send(html);
-	} catch (error)
-	{
-		res.status(500).send(`Error fetching registrations: ${error.message}`);
-	}
+	res.send("asdf");
 });
 
 module.exports =
