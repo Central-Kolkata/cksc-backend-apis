@@ -197,6 +197,6 @@ const asdf = asyncHandler(async (req, res) =>
 
 module.exports =
 {
-	fetchMembers: fetchMembers, createMember, createMembers, fetchPendingAmount, updateMember, deleteMember,
+	fetchMembers, createMember, createMembers, fetchPendingAmount, updateMember, deleteMember,
 	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers
 };
