@@ -34,6 +34,7 @@ app.use(`/api/bank`, require("./routes/bank-routes"));
 app.use(`/api/sms`, require("./routes/sms-routes"));
 app.use(`/api/whatsapp`, require("./routes/whatsapp-routes"));
 app.use(`/api/reports`, require("./routes/reports-routes"));
+app.use(`/api/transactions`, require("./routes/transaction-routes"));
 app.use(`/api/events`, require("./routes/event-routes"));
 
 app.use(errorHandler);

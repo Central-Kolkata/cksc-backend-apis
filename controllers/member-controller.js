@@ -103,15 +103,17 @@ const replaceMembers = asyncHandler(async (req, res) =>
 
 const deleteMember = asyncHandler(async (req, res) =>
 {
-	const member = await Member.findByIdAndUpdate(req.params.id);
+	const memberId = req.params.id;
+	const member = await Member.findById(memberId);
 
 	if (!member)
 	{
-		res.status(400);
-		throw new Error("Member not found");
+		res.status(404).json({ message: "Member not found" });
+		return;
 	}
 
-	await member.remove(); // TODO: add the del flag
+	member.status = "deleted";
+	await member.save();
 
 	res.status(200).json({ message: "Member Deleted Successfully" });
 });
