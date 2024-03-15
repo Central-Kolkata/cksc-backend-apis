@@ -6,55 +6,89 @@ const fetchTransactions = asyncHandler(async (req, res) =>
 {
 	const { fromDate, toDate } = req.query;
 
-	let query = {};
+	let matchStage = { paymentStatus: "paid" };
 
 	if (fromDate || toDate)
 	{
 		let start = fromDate ? moment(fromDate).startOf('day') : moment(0);
 		let end = toDate ? moment(toDate).endOf('day') : moment().endOf('day');
 
-		query.createdAt = { $gte: start.toDate(), $lte: end.toDate() };
-		query.paymentStatus = "paid";
+		matchStage.createdAt = { $gte: start.toDate(), $lte: end.toDate() };
 	}
 
-	const payments = await MemberPayment.find(query)
-		.populate(
+	let payments = await MemberPayment.aggregate(
+		[
 			{
-				path: 'memberId',
-				select: 'name icaiMembershipNo ckscMembershipNo mobile email',
-			})
-		.populate(
+				$match: matchStage
+			},
 			{
-				path: 'iciciPaymentRequestId',
-				select: 'paymentType amount',
-			})
-		.populate(
+				$lookup:
+				{
+					from: "members",
+					localField: "memberId",
+					foreignField: "_id",
+					as: "member"
+				}
+			},
 			{
-				path: 'iciciPaymentResponseId',
-				select: 'totalAmount',
-			})
-		.sort({ createdAt: -1 });
+				$lookup:
+				{
+					from: "icicipaymentrequests",
+					localField: "iciciPaymentRequestId",
+					foreignField: "_id",
+					as: "iciciPaymentRequest"
+				}
+			},
+			{
+				$lookup:
+				{
+					from: "icicipaymentresponses",
+					localField: "iciciPaymentResponseId",
+					foreignField: "_id",
+					as: "iciciPaymentResponse"
+				}
+			},
+			{
+				$addFields:
+				{
+					iciciPaymentRequest: { $arrayElemAt: ["$iciciPaymentRequest", 0] },
+					iciciPaymentResponse: { $arrayElemAt: ["$iciciPaymentResponse", 0] },
+				}
+			},
+			{
+				$match:
+				{
+					"iciciPaymentRequest.amount": { $exists: true },
+					"iciciPaymentResponse.transactionAmount": { $exists: true },
+					$expr: { $eq: ["$iciciPaymentRequest.amount", "$iciciPaymentResponse.transactionAmount"] }
+				}
+			},
+			{
+				$project:
+				{
+					member: 1,
+					iciciPaymentRequest: { paymentType: 1, amount: 1 },
+					iciciPaymentResponse: { transactionAmount: 1 },
+					paymentStatus: 1,
+					createdAt: 1,
+					updatedAt: 1
+				}
+			}
+		]);
 
-	// Manually adjust the output to rename keys
+	// Format updatedAt in each document and rename keys as needed
 	const modifiedPayments = payments.map(payment =>
 	{
-		const modifiedPayment = payment.toObject(); // Convert document to a plain JavaScript object
-
-		if (modifiedPayment.updatedAt)
+		if (payment.updatedAt)
 		{
-			modifiedPayment.updatedAt = moment(modifiedPayment.updatedAt).format('DD-MMM-YY hh:mm:ss A');
+			payment.updatedAt = moment(payment.updatedAt).format('DD-MMM-YY hh:mm:ss A');
 		}
 
-		modifiedPayment.member = modifiedPayment.memberId;
-		delete modifiedPayment.memberId;
+		// Flatten member, iciciPaymentRequest, and iciciPaymentResponse arrays if needed
+		payment.member = payment.member[0] ? payment.member[0] : {};
+		// No need to flatten iciciPaymentRequest and iciciPaymentResponse since it's done in $addFields
 
-		modifiedPayment.iciciPaymentRequest = modifiedPayment.iciciPaymentRequestId;
-		delete modifiedPayment.iciciPaymentRequestId;
-
-		modifiedPayment.iciciPaymentResponse = modifiedPayment.iciciPaymentResponseId;
-		delete modifiedPayment.iciciPaymentResponseId;
-
-		return modifiedPayment;
+		return payment;
 	});
 
 	res.send(modifiedPayments);

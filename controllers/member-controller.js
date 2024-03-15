@@ -194,7 +194,52 @@ const memberTransactions = asyncHandler(async (req, res) =>
 
 const asdf = asyncHandler(async (req, res) =>
 {
-	res.send("asdf");
+	const successfulPayments = await MemberPayment.find({ paymentStatus: 'paid' })
+		.populate('memberId', 'name icaiMembershipNo ckscMembershipNo') // Only populate specified member details
+		.populate('iciciPaymentRequestId', 'mobile amount paymentType') // Adjusted to match your fields
+		.populate('iciciPaymentResponseId', 'iciciReferenceNo totalAmount responseCode') // Adjusted to match your fields
+		.exec();
+
+	// Start HTML table
+	let html = `<table border="1">
+                    <tr>
+                        <th>Member Name</th>
+                        <th>ICAI Membership No</th>
+                        <th>CKSC Membership No</th>
+                        <th>Mobile</th>
+                        <th>Amount</th>
+                        <th>Payment Type</th>
+                        <th>ICICI Reference No</th>
+                        <th>Total Amount</th>
+                        <th>Response Code</th>
+                        <th>Payment Status</th>
+                        <th>Payment Time</th>
+                    </tr>`;
+
+	// Fill the table with rows of data
+	successfulPayments.forEach(payment =>
+	{
+		html += `<tr>
+                    <td>${payment.memberId?.name || ''}</td>
+                    <td>${payment.memberId?.icaiMembershipNo || ''}</td>
+                    <td>${payment.memberId?.ckscMembershipNo || ''}</td>
+                    <td>${payment.iciciPaymentRequestId?.mobile || ''}</td>
+                    <td>${payment.iciciPaymentRequestId?.amount || ''}</td>
+                    <td>${payment.iciciPaymentRequestId?.paymentType || ''}</td>
+                    <td>${payment.iciciPaymentResponseId?.iciciReferenceNo || ''}</td>
+                    <td>${payment.iciciPaymentResponseId?.totalAmount || ''}</td>
+                    <td>${payment.iciciPaymentResponseId?.responseCode || ''}</td>
+                    <td>${payment.paymentStatus}</td>
+                    <td>${payment.createdAt ? new Date(payment.createdAt).toLocaleString() : ''}</td>
+                 </tr>`;
+	});
+
+	// Close the table
+	html += `</table>`;
+
+	// Set the Content-Type for HTML
+	res.setHeader('Content-Type', 'text/html');
+	res.status(200).send(html);
 });
 
 module.exports =
