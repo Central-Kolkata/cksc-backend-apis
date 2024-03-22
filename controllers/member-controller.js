@@ -9,7 +9,7 @@ const axios = require("axios");
 
 const fetchMembers = asyncHandler(async (req, res) =>
 {
-	const members = await Member.find();
+	const members = await Member.find({ status: "active" });
 
 	res.status(200).json({ members });
 });

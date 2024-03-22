@@ -31,6 +31,15 @@ const fetchTransactions = asyncHandler(async (req, res) =>
 				}
 			},
 			{
+				$unwind: "$member" // This unwinds the member array to allow for filtering in the next step
+			},
+			{
+				$match:
+				{
+					"member.status": "active" // This matches only documents where the member's status is active
+				}
+			},
+			{
 				$lookup:
 				{
 					from: "icicipaymentrequests",
