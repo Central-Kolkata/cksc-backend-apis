@@ -120,14 +120,25 @@ const deleteMember = asyncHandler(async (req, res) =>
 
 const fetchPendingAmount = asyncHandler(async (req, res) =>
 {
-	const member = await Member.findOne({ icaiMembershipNo: req.params.icaiMembershipNo });
+	const member = await Member.findOne(
+		{
+			icaiMembershipNo: req.params.icaiMembershipNo,
+			status: { $ne: "deleted" }
+		});
+
+	if (!member)
+	{
+		return res.status(404).json(
+			{
+				message: "Sorry! Member not found or has been deleted.",
+			});
+	}
 
 	res.status(200).json(
 		{
-			message: "Data fetched Successfully",
+			message: "Data fetched successfully",
 			response: member
-		}
-	);
+		});
 });
 
 const fetchRegisteredEvents = asyncHandler(async (req, res) =>
