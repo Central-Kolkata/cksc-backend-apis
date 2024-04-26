@@ -88,7 +88,9 @@ const updateEvent = asyncHandler(async (req, res) =>
 		res.status(400);
 		throw new Error("Event not found");
 	}
+
 	await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
 	res.status(200).json({ message: "Event Updated Successfully!" });
 });
 
