@@ -279,7 +279,7 @@ function buildQueryString(isPaymentSuccessful, responseCode, paymentRequest, pay
 
 	if (isPaymentSuccessful) 
 	{
-		baseQuery += `|${paymentRequest.memberId}|${paymentRequest.icaiMembershipNo}|${paymentRequest.ckscMembershipNo}|${details.ckscReferenceNo}|${details.iciciReferenceNo}|${details.transactionDate}|${details.transactionAmount}|${paymentRequest.paymentMode}|${responseCode}|${paymentRequest.name}|${paymentRequest.email}|${paymentRequest.mobile}|${paymentResponseId}|${paymentRequest.paymentType}|${paymentRequest.paymentDescription}|${paymentRequest.paymentRemarks}`;
+		baseQuery += `|${paymentRequest.memberId}|${paymentRequest.icaiMembershipNo}|${paymentRequest.ckscMembershipNo}|${details.ckscReferenceNo}|${details.iciciReferenceNo}|${details.transactionDate}|${details.transactionAmount}|${details.paymentMode}|${responseCode}|${paymentRequest.name}|${paymentRequest.email}|${paymentRequest.mobile}|${paymentResponseId}|${paymentRequest.paymentType}|${paymentRequest.paymentDescription}|${paymentRequest.paymentRemarks}`;
 	}
 
 	return baseQuery;
