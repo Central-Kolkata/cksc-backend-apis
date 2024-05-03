@@ -52,7 +52,7 @@ const receivePaymentResponse = asyncHandler(async (req, res) => handlePaymentRes
 
 const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, amount = 0) =>
 {
-	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event"))
+	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event" || paymentType === "Annual Conference"))
 	{
 		return await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, "", paymentType, amount);
 	}
@@ -63,7 +63,7 @@ const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icai
 // Function to handle new member creation
 const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount = 0) =>
 {
-	const type = paymentType === "Event" ? "non-member" : "member";
+	const type = (paymentType === "Event" || paymentType === "Annual Conference") ? "non-member" : "member";
 
 	const newMember = await Member.create(
 		{
