@@ -112,7 +112,7 @@ const deleteEvent = asyncHandler(async (req, res) =>
 
 const register = asyncHandler(async (req, res) =>
 {
-	const { memberId, eventId, remarks, iciciReferenceNo } = req.body;
+	const { memberId, eventId, remarks, iciciReferenceNo, currentPendingAmount } = req.body;
 	let memberPayment;
 
 	// Check if the member has already registered for this event
@@ -144,7 +144,7 @@ const register = asyncHandler(async (req, res) =>
 		transactionAmount: paymentResponse?.transactionAmount,
 		transactionRefNo: memberPayment?._id,
 		memberType: member.type,
-		currentPendingAmount: member.pendingAmount,
+		currentPendingAmount: currentPendingAmount ? currentPendingAmount : member.pendingAmount,
 		eventAmount: event.eventAmount,
 		paymentStatus: memberPayment?.paymentStatus
 	};

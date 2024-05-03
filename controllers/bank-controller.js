@@ -235,9 +235,9 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 
 		const iciciPaymentResponse = await ICICIPaymentResponse.create(paymentResponseDetails);
 
-		if (isPaymentSuccessful) 
+		if (isPaymentSuccessful)
 		{
-			if (!isOneTimePayment)
+			if (isOneTimePayment == false && iciciPaymentRequest[0].paymentType != "Annual Conference")
 			{
 				await reduceThePendingAmount(dbAmount, iciciPaymentRequest[0].memberId);
 			}
@@ -257,7 +257,14 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 		// Redirect to a response page with a query string that encapsulates the result
 		const queryString = buildQueryString(isPaymentSuccessful, responseCode, iciciPaymentRequest[0], memberPaymentResponse._id, paymentResponseDetails);
 
-		res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
+		if (iciciPaymentRequest[0].paymentType == "Annual Conference")
+		{
+			res.redirect(`${process.env.CKSC_BASE_URL}/annual-payment-response.html?${queryString}`);
+		}
+		else
+		{
+			res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
+		}
 	}
 	catch (ex) 
 	{
