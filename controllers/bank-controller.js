@@ -68,7 +68,7 @@ const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, re
 	const newMember = await Member.create(
 		{
 			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: amount,
-			mobile, email, active: false, type
+			mobile, email, active: true, type
 		});
 
 	return newMember;
