@@ -80,7 +80,7 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 	const request = req.body;
 	const
 		{
-			memberId, icaiMembershipNo, name, email, mobile, address, pan,
+			memberId, icaiMembershipNo, ckscMembershipNo, name, email, mobile, address, pan,
 			paymentType, remarks, amount, amountAfterWaiver, selectedEvent = ""
 		} = request;
 
@@ -101,7 +101,7 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 			paymentType,
 			paymentDescription: isOneTimePayment ? selectedEvent : "",
 			paymentRemarks: remarks,
-			ckscMembershipNo: ""
+			ckscMembershipNo
 		});
 
 	// In both the cases - with waiver or without waiver, the user will be paying `amountAfterWaiver` only.
