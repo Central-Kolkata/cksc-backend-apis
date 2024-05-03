@@ -177,23 +177,30 @@ const fetchEventMembers = asyncHandler(async (req, res) =>
 		// Step 2 & 3: Iterate and conditionally fetch MemberPayments
 		for (const registration of registrations)
 		{
+			try
+			{
+				// console.log(registration.memberId);
+				memberDetailsWithRegistrationDate.push(
+					{
+						memberId: registration.memberId._id,
+						memberName: registration.memberId.name,
+						icaiMembershipNo: registration.memberId.icaiMembershipNo,
+						ckscMembershipNo: registration.memberId.ckscMembershipNo,
+						mobile: registration.memberId.mobile,
+						email: registration.memberId.email,
 
-			memberDetailsWithRegistrationDate.push(
-				{
-					memberId: registration.memberId._id,
-					memberName: registration.memberId.name,
-					icaiMembershipNo: registration.memberId.icaiMembershipNo,
-					ckscMembershipNo: registration.memberId.ckscMembershipNo,
-					mobile: registration.memberId.mobile,
-					email: registration.memberId.email,
-
-					transactionRefNo: registration.transactionRefNo,
-					transactionAmount: registration.transactionAmount,
-					currentPendingAmount: registration.currentPendingAmount,
-					paymentStatus: registration.paymentStatus,
-					registrationDate: registration.registrationDate,
-					remarks: registration.remarks
-				});
+						transactionRefNo: registration.transactionRefNo,
+						transactionAmount: registration.transactionAmount,
+						currentPendingAmount: registration.currentPendingAmount,
+						paymentStatus: registration.paymentStatus,
+						registrationDate: registration.registrationDate,
+						remarks: registration.remarks
+					});
+			}
+			catch (error)
+			{
+				console.log("error", registration);
+			}
 		}
 
 		res.status(200).json(memberDetailsWithRegistrationDate);

@@ -32,6 +32,11 @@ const eventSchema = mongoose.Schema(
 			type: Boolean,
 			default: true
 		},
+		isAnnualConference:
+		{
+			type: Boolean,
+			default: false
+		},
 		eventAmount:
 		{
 			type: Number

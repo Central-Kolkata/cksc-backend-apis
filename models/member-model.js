@@ -57,7 +57,8 @@ const memberSchema = mongoose.Schema(
 		status:
 		{
 			type: String,
-			enum: ['active', 'inactive', 'pending', 'deleted']
+			enum: ['active', 'inactive', 'pending', 'deleted'],
+			default: 'active'
 		},
 		type:
 		{
