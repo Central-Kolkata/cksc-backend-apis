@@ -148,6 +148,8 @@ const fetchRegisteredEvents = asyncHandler(async (req, res) =>
 	const registeredEvents = await EventRegistration.find({ memberId: memberId })
 		.populate('eventId');
 
+
+
 	const eventsDetails = registeredEvents.map(registration => registration.eventId);
 
 	res.status(200).json({ events: eventsDetails });
