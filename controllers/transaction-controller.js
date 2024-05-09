@@ -5,102 +5,96 @@ const moment = require('moment');
 const fetchTransactions = asyncHandler(async (req, res) =>
 {
 	const { fromDate, toDate } = req.query;
-
-	let matchStage = { paymentStatus: "paid" };
+	let dateFilter = {};
 
 	if (fromDate || toDate)
 	{
-		let start = fromDate ? moment(fromDate).startOf('day') : moment(0);
-		let end = toDate ? moment(toDate).endOf('day') : moment().endOf('day');
-
-		matchStage.createdAt = { $gte: start.toDate(), $lte: end.toDate() };
+		// Use ISO date format and handle dates as UTC
+		const start = fromDate ? new Date(fromDate) : new Date(0);
+		const end = toDate ? new Date(toDate) : new Date();
+		dateFilter =
+		{
+			createdAt: { $gte: start, $lte: end }
+		};
+		console.log("Using date filter:", dateFilter.createdAt.$gte.toISOString(), dateFilter.createdAt.$lte.toISOString());
 	}
 
-	let payments = await MemberPayment.aggregate(
-		[
-			{
-				$match: matchStage
-			},
-			{
-				$lookup:
-				{
-					from: "members",
-					localField: "memberId",
-					foreignField: "_id",
-					as: "member"
-				}
-			},
-			{
-				$unwind: "$member" // This unwinds the member array to allow for filtering in the next step
-			},
-			{
-				$match:
-				{
-					"member.status": "active" // This matches only documents where the member's status is active
-				}
-			},
-			{
-				$lookup:
-				{
-					from: "icicipaymentrequests",
-					localField: "iciciPaymentRequestId",
-					foreignField: "_id",
-					as: "iciciPaymentRequest"
-				}
-			},
-			{
-				$lookup:
-				{
-					from: "icicipaymentresponses",
-					localField: "iciciPaymentResponseId",
-					foreignField: "_id",
-					as: "iciciPaymentResponse"
-				}
-			},
-			{
-				$addFields:
-				{
-					iciciPaymentRequest: { $arrayElemAt: ["$iciciPaymentRequest", 0] },
-					iciciPaymentResponse: { $arrayElemAt: ["$iciciPaymentResponse", 0] },
-				}
-			},
-			{
-				$match:
-				{
-					"iciciPaymentRequest.amount": { $exists: true },
-					"iciciPaymentResponse.transactionAmount": { $exists: true },
-					$expr: { $eq: ["$iciciPaymentRequest.amount", "$iciciPaymentResponse.transactionAmount"] }
-				}
-			},
-			{
-				$project:
-				{
-					member: 1,
-					iciciPaymentRequest: { paymentType: 1, amount: 1 },
-					iciciPaymentResponse: { transactionAmount: 1 },
-					paymentStatus: 1,
-					createdAt: 1,
-					updatedAt: 1
-				}
-			}
-		]);
-
-	// Format updatedAt in each document and rename keys as needed
-	const modifiedPayments = payments.map(payment =>
+	try
 	{
-		if (payment.updatedAt)
+		let payments = await MemberPayment.aggregate(
+			[
+				{ $match: { paymentStatus: "paid", ...dateFilter } },
+				{
+					$lookup:
+					{
+						from: "members",
+						localField: "memberId",
+						foreignField: "_id",
+						as: "member"
+					}
+				},
+				{
+					$unwind:
+					{
+						path: "$member",
+						preserveNullAndEmptyArrays: false  // Ensures that the pipeline continues only if member exists
+					}
+				},
+				{ $match: { "member.status": "active" } },
+				{
+					$lookup:
+					{
+						from: "icicipaymentrequests",
+						localField: "iciciPaymentRequestId",
+						foreignField: "_id",
+						as: "iciciPaymentRequest"
+					}
+				},
+				{
+					$lookup:
+					{
+						from: "icicipaymentresponses",
+						localField: "iciciPaymentResponseId",
+						foreignField: "_id",
+						as: "iciciPaymentResponse"
+					}
+				},
+				{
+					$addFields:
+					{
+						iciciPaymentRequest: { $arrayElemAt: ["$iciciPaymentRequest", 0] },
+						iciciPaymentResponse: { $arrayElemAt: ["$iciciPaymentResponse", 0] }
+					}
+				},
+				{
+					$project:
+					{
+						"member.name": 1,
+						"member.email": 1,
+						"member.mobile": 1,
+						"member.ckscMembershipNo": 1,
+						"member.icaiMembershipNo": 1,
+						"iciciPaymentRequest.paymentType": 1,
+						"iciciPaymentRequest.amount": 1,
+						"updatedAt": 1
+					}
+				}
+			]);
+
+		console.log("Payments found:", payments.length);
+		payments = payments.map(payment =>
 		{
-			payment.updatedAt = moment(payment.updatedAt).format('DD-MMM-YY hh:mm:ss A');
-		}
+			payment.updatedAt = payment.updatedAt ? moment(payment.updatedAt).toISOString() : "";
+			return payment;
+		});
 
-		// Flatten member, iciciPaymentRequest, and iciciPaymentResponse arrays if needed
-		payment.member = payment.member[0] ? payment.member[0] : {};
-		// No need to flatten iciciPaymentRequest and iciciPaymentResponse since it's done in $addFields
-
-		return payment;
-	});
-
-	res.send(modifiedPayments);
+		res.send(payments);
+	}
+	catch (error)
+	{
+		console.error("Error in aggregation pipeline:", error);
+		res.status(500).send("Failed to fetch payments due to server error.");
+	}
 });
 
 module.exports =
