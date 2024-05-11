@@ -4,10 +4,8 @@ const Venue = require("../models/venue-model");
 const Event = require("../models/event-model");
 const EventRegistration = require("../models/event-registration-model");
 const MemberPayment = require("../models/member-payment");
-const ICICIPaymentRequest = require("../models/icici-payment-request");
 const ICICIPaymentResponse = require("../models/icici-payment-response");
 const Member = require("../models/member-model");
-const axios = require("axios");
 
 const fetchVenues = asyncHandler(async (req, res) =>
 {
@@ -129,8 +127,8 @@ const register = asyncHandler(async (req, res) =>
 		return res.status(400).json({ message: "Member has already registered for this event." });
 	}
 
-	const event = await Event.findById(eventId, "eventAmount");
-	const member = await Member.findById(memberId, "type pendingAmount");
+	const event = await Event.findById(eventId);
+	const member = await Member.findById(memberId);
 	const paymentResponse = await ICICIPaymentResponse.findOne({ iciciReferenceNo });
 
 	if (paymentResponse)
@@ -154,7 +152,12 @@ const register = asyncHandler(async (req, res) =>
 	// Proceed to create a new event registration
 	await EventRegistration.create(registrationData);
 
-	res.status(201).json({ message: "Event Registration Successful!" });
+	res.status(201).json(
+		{
+			message: "Event Registration Successful!",
+			event,
+			member
+		});
 });
 
 const fetchEventMembers = asyncHandler(async (req, res) =>
@@ -213,7 +216,6 @@ const fetchEventMembers = asyncHandler(async (req, res) =>
 		res.status(500).send(`Error fetching registrations: ${error.message}`);
 	}
 });
-
 
 module.exports =
 {
