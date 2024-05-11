@@ -66,6 +66,7 @@ const fetchUpcomingEvents = asyncHandler(async (req, res) =>
 	today.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to 0
 
 	const events = await Event.find({ eventStartDate: { $gte: today } })
+		.populate('eventVenue') // Populates the eventVenue field
 		.sort({ 'eventStartDate': 1 }); // Sort by eventStartDate ascending
 
 	res.status(200).json({ events });
@@ -112,7 +113,7 @@ const deleteEvent = asyncHandler(async (req, res) =>
 
 const register = asyncHandler(async (req, res) =>
 {
-	const { memberId, eventId, remarks, iciciReferenceNo, currentPendingAmount } = req.body;
+	const { memberId, eventId, remarks, iciciReferenceNo, currentPendingAmount, referredBy } = req.body;
 	let memberPayment;
 
 	// Check if the member has already registered for this event
@@ -146,7 +147,8 @@ const register = asyncHandler(async (req, res) =>
 		memberType: member.type,
 		currentPendingAmount: currentPendingAmount ? currentPendingAmount : member.pendingAmount,
 		eventAmount: event.eventAmount,
-		paymentStatus: memberPayment?.paymentStatus
+		paymentStatus: memberPayment?.paymentStatus,
+		referredBy
 	};
 
 	// Proceed to create a new event registration

@@ -44,6 +44,11 @@ const eventRegistrationSchema = mongoose.Schema(
 		{
 			type: Number
 		},
+		referredBy:
+		{
+			type: String,
+			default: ""
+		},
 		memberType:
 		{
 			type: String,
