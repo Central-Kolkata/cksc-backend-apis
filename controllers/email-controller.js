@@ -24,7 +24,7 @@ const sendEmail = asyncHandler(async (req, res) =>
 		{
 			from:
 			{
-				name: "Central Kolkata Study Circle",
+				name: "Central Kolkata Chartered Accountants",
 				address: process.env.GOOGLE_EMAIL
 			},
 			to: [emailObject.email],
