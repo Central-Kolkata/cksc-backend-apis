@@ -52,6 +52,10 @@ const eventSchema = mongoose.Schema(
 		eventSpeakers:
 		{
 			type: [String]
+		},
+		eventEmailNotes:
+		{
+			type: String
 		}
 	},
 	{
