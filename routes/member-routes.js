@@ -7,7 +7,7 @@ router.route(`/asdf`).get(asdf);
 router.route(`/add`).post(createMembers);
 router.route(`/replace`).post(replaceMembers);
 router.route(`/modify/:id`).put(updateMember).delete(deleteMember);
-router.route(`/fetchPendingAmount/:icaiMembershipNo`).get(fetchPendingAmount);
+router.route(`/fetchPendingAmount/:icaiMembershipNo/:eventIdForRegistration`).get(fetchPendingAmount);
 router.route(`/events/:memberId`).get(fetchRegisteredEvents);
 router.route(`/:memberId/transactions`).get(memberTransactions);
 

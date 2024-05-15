@@ -134,10 +134,23 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 			});
 	}
 
+	let event;
+
+	if (req.params.eventIdForRegistration)
+	{
+		event = await EventRegistration.findOne(
+			{
+				eventId: req.params.eventIdForRegistration,
+				memberId: member._id,
+				status: "confirmed"
+			});
+	}
+
 	res.status(200).json(
 		{
 			message: "Data fetched successfully",
-			response: member
+			response: member,
+			event
 		});
 });
 
