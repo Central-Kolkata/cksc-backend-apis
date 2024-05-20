@@ -129,6 +129,8 @@ const register = asyncHandler(async (req, res) =>
 
 	const event = await Event.findById(eventId);
 	const member = await Member.findById(memberId);
+	const venue = await Venue.findById(event.eventVenue);
+
 	const paymentResponse = await ICICIPaymentResponse.findOne({ iciciReferenceNo });
 
 	if (paymentResponse)
@@ -156,7 +158,8 @@ const register = asyncHandler(async (req, res) =>
 		{
 			message: "Event Registration Successful!",
 			event,
-			member
+			member,
+			venue
 		});
 });
 
