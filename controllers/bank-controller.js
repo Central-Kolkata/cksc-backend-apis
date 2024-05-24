@@ -7,6 +7,7 @@ const ICICIPaymentResponse = require("../models/icici-payment-response");
 const EventRegistration = require("../models/event-registration-model");
 const Member = require("../models/member-model");
 const MemberPayment = require("../models/member-payment");
+const Venue = require("../models/venue-model");
 const { NotFoundError } = require("../middlewares/errors");
 
 const getNextCKSCMembershipNo = async () =>
@@ -174,8 +175,18 @@ const registerOneTimeMember = asyncHandler(async (req, res) =>
 	const eventRegistration = new EventRegistration(eventRegistrationData);
 	await eventRegistration.save();
 
+	const event = await Event.findById(selectedEvent);
+	const member = await Member.findById(newMember._id);
+	const venue = await Venue.findById(event.eventVenue);
+
 	// Send response back with event registration details
-	res.status(201).json(eventRegistration);
+	res.status(201).json(
+		{
+			message: "Event Registration Successful!",
+			event,
+			member,
+			venue
+		});
 });
 
 const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = false) => 
