@@ -36,7 +36,7 @@ app.use(`/api/whatsapp`, require("./routes/whatsapp-routes"));
 app.use(`/api/reports`, require("./routes/reports-routes"));
 app.use(`/api/transactions`, require("./routes/transaction-routes"));
 app.use(`/api/events`, require("./routes/event-routes"));
-app.use(`/api/email`, require("./routes/email-routes"));
+app.use(`/api/emailService`, require("./routes/email-routes"));
 
 app.use(errorHandler);
 

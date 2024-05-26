@@ -6,7 +6,7 @@ const transporter = nodemailer.createTransport(
 	{
 		host: "smtp.gmail.com",
 		port: 587,
-		secure: false, // Use `true` for port 465, `false` for all other ports
+		secure: false,
 		auth:
 		{
 			user: `${process.env.GOOGLE_EMAIL}`,
@@ -14,7 +14,19 @@ const transporter = nodemailer.createTransport(
 		},
 	});
 
-const sendEmail = asyncHandler(async (req, res) =>
+const transporter2 = nodemailer.createTransport(
+	{
+		host: "smtp.gmail.com",
+		port: 587,
+		secure: false,
+		auth:
+		{
+			user: `${process.env.GOOGLE_EMAIL_AKP}`,
+			pass: `${process.env.GOOGLE_EMAIL_AKP_APP_PASSWORD}`,
+		},
+	});
+
+const sendCKCAEmail = asyncHandler(async (req, res) =>
 {
 	try
 	{
@@ -43,7 +55,36 @@ const sendEmail = asyncHandler(async (req, res) =>
 	}
 });
 
+const sendEmailForAKP = asyncHandler(async (req, res) =>
+{
+	try
+	{
+		const emailObject = req.body["emailObject"];
+
+		const emailOptions =
+		{
+			from:
+			{
+				name: "भारत का Phone",
+				address: process.env.GOOGLE_EMAIL_AKP
+			},
+			to: [emailObject.email],
+			bcc: "cksc.suvishakha@gmail.com",
+			subject: emailObject.subject,
+			text: emailObject.body,
+			html: emailObject.body
+		};
+
+		const output = await transporter2.sendMail(emailOptions);
+		res.send(output);
+	}
+	catch (error)
+	{
+		res.error(500).json({ error });
+	}
+});
+
 module.exports =
 {
-	sendEmail
+	sendCKCAEmail, sendEmailForAKP
 };
