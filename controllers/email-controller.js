@@ -76,7 +76,15 @@ const sendEmailForAKP = asyncHandler(async (req, res) =>
 		};
 
 		const output = await transporter2.sendMail(emailOptions);
-		res.send(output);
+
+		if (output["accepted"].length > 0)
+		{
+			res.send("Success");
+		}
+		else
+		{
+			res.send(output);
+		}
 	}
 	catch (error)
 	{
