@@ -56,6 +56,14 @@ const eventSchema = mongoose.Schema(
 		eventEmailNotes:
 		{
 			type: String
+		},
+		attachmentURL:
+		{
+			type: [String]
+		},
+		attachmentName:
+		{
+			type: [String]
 		}
 	},
 	{

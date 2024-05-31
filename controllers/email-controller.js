@@ -1,83 +1,47 @@
 const nodemailer = require("nodemailer");
 const asyncHandler = require("express-async-handler");
-const axios = require("axios");
 
-const transporter = nodemailer.createTransport(
-	{
-		host: "smtp.gmail.com",
-		port: 587,
-		secure: false,
-		auth:
+// Function to create a transporter
+const createTransporter = (user, pass) =>
+{
+	return nodemailer.createTransport(
 		{
-			user: `${process.env.GOOGLE_EMAIL}`,
-			pass: `${process.env.GOOGLE_EMAIL_APP_PASSWORD}`,
-		},
-	});
+			host: "smtp.gmail.com",
+			port: 587,
+			secure: false,
+			auth:
+			{
+				user,
+				pass,
+			},
+		});
+};
 
-const transporter2 = nodemailer.createTransport(
-	{
-		host: "smtp.gmail.com",
-		port: 587,
-		secure: false,
-		auth:
-		{
-			user: `${process.env.GOOGLE_EMAIL_AKP}`,
-			pass: `${process.env.GOOGLE_EMAIL_AKP_APP_PASSWORD}`,
-		},
-	});
+const transporterCKCA = createTransporter(process.env.GOOGLE_EMAIL, process.env.GOOGLE_EMAIL_APP_PASSWORD);
+const transporterAKP = createTransporter(process.env.GOOGLE_EMAIL_AKP, process.env.GOOGLE_EMAIL_AKP_APP_PASSWORD);
 
-const sendCKCAEmail = asyncHandler(async (req, res) =>
+// Function to send email
+const sendEmail = async (transporter, fromName, fromAddress, emailObject, res) =>
 {
 	try
 	{
-		const emailObject = req.body["emailObject"];
-
 		const emailOptions =
 		{
 			from:
 			{
-				name: "Central Kolkata Chartered Accountants",
-				address: process.env.GOOGLE_EMAIL
+				name: fromName,
+				address: fromAddress,
 			},
 			to: [emailObject.email],
 			bcc: "cksc.suvishakha@gmail.com",
 			subject: emailObject.subject,
 			text: emailObject.body,
-			html: emailObject.body
+			html: emailObject.body,
 		};
 
 		const output = await transporter.sendMail(emailOptions);
-		res.send(output);
-	}
-	catch (error)
-	{
-		res.error(500).json({ error });
-	}
-});
 
-const sendEmailForAKP = asyncHandler(async (req, res) =>
-{
-	try
-	{
-		const emailObject = req.body["emailObject"];
-
-		const emailOptions =
-		{
-			from:
-			{
-				name: "भारत का Phone",
-				address: process.env.GOOGLE_EMAIL_AKP
-			},
-			to: [emailObject.email],
-			bcc: "cksc.suvishakha@gmail.com",
-			subject: emailObject.subject,
-			text: emailObject.body,
-			html: emailObject.body
-		};
-
-		const output = await transporter2.sendMail(emailOptions);
-
-		if (output["accepted"].length > 0)
+		if (output.accepted.length > 0)
 		{
 			res.send("Success");
 		}
@@ -88,11 +52,26 @@ const sendEmailForAKP = asyncHandler(async (req, res) =>
 	}
 	catch (error)
 	{
-		res.error(500).json({ error });
+		res.status(500).json({ error });
 	}
+};
+
+// Handler for sending CKCA email
+const sendCKCAEmail = asyncHandler(async (req, res) =>
+{
+	const emailObject = req.body.emailObject;
+	await sendEmail(transporterCKCA, "Central Kolkata Chartered Accountants", process.env.GOOGLE_EMAIL, emailObject, res);
+});
+
+// Handler for sending AKP email
+const sendEmailForAKP = asyncHandler(async (req, res) =>
+{
+	const emailObject = req.body.emailObject;
+	await sendEmail(transporterAKP, "भारत का Phone", process.env.GOOGLE_EMAIL_AKP, emailObject, res);
 });
 
 module.exports =
 {
-	sendCKCAEmail, sendEmailForAKP
+	sendCKCAEmail,
+	sendEmailForAKP,
 };

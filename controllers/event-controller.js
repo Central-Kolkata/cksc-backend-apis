@@ -50,7 +50,6 @@ const deleteVenue = asyncHandler(async (req, res) =>
 	res.status(200).json({ message: "Venue Deleted Successfully!" });
 });
 
-// Fetch all events
 const fetchEvents = asyncHandler(async (req, res) =>
 {
 	const events = await Event.find().sort({ 'eventStartDate': -1 });
@@ -59,25 +58,32 @@ const fetchEvents = asyncHandler(async (req, res) =>
 
 const fetchUpcomingEvents = asyncHandler(async (req, res) =>
 {
-	// Get today's date at the start of the day (00:00:00)
 	const today = new Date();
-	today.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to 0
+	today.setHours(0, 0, 0, 0);
 
 	const events = await Event.find({ eventStartDate: { $gte: today } })
-		.populate('eventVenue') // Populates the eventVenue field
-		.sort({ 'eventStartDate': 1 }); // Sort by eventStartDate ascending
+		.populate('eventVenue')
+		.sort({ 'eventStartDate': 1 });
 
-	res.status(200).json({ events });
+	const eventsWithRegistrations = await Promise.all(events.map(async (event) =>
+	{
+		const registrationCount = await EventRegistration.countDocuments({ eventId: event._id });
+
+		return {
+			...event.toObject(),
+			registrationCount
+		};
+	}));
+
+	res.status(200).json({ "events": eventsWithRegistrations });
 });
 
-// Create a new event
 const createEvent = asyncHandler(async (req, res) =>
 {
 	const event = await Event.create(req.body);
 	res.status(201).json({ message: "Event Created Successfully!" });
 });
 
-// Update an event
 const updateEvent = asyncHandler(async (req, res) =>
 {
 	const event = await Event.findById(req.params.id);
@@ -93,7 +99,6 @@ const updateEvent = asyncHandler(async (req, res) =>
 	res.status(200).json({ message: "Event Updated Successfully!" });
 });
 
-// Delete an event
 const deleteEvent = asyncHandler(async (req, res) =>
 {
 	const event = await Event.findById(req.params.id);
