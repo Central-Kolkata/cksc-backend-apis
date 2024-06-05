@@ -120,11 +120,24 @@ const deleteMember = asyncHandler(async (req, res) =>
 
 const fetchPendingAmount = asyncHandler(async (req, res) =>
 {
-	const member = await Member.findOne(
-		{
-			icaiMembershipNo: req.params.icaiMembershipNo,
-			status: { $ne: "deleted" }
-		});
+	let member;
+
+	if (req.params.icaiMembershipNo.length === 10)
+	{
+		member = await Member.findOne(
+			{
+				mobile: req.params.icaiMembershipNo,
+				status: { $ne: "deleted" }
+			});
+	}
+	else
+	{
+		member = await Member.findOne(
+			{
+				icaiMembershipNo: req.params.icaiMembershipNo,
+				status: { $ne: "deleted" }
+			});
+	}
 
 	if (!member)
 	{
