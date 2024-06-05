@@ -6,6 +6,7 @@ const EventRegistration = require("../models/event-registration-model");
 const MemberPayment = require("../models/member-payment");
 const ICICIPaymentResponse = require("../models/icici-payment-response");
 const Member = require("../models/member-model");
+const moment = require("moment");
 
 const fetchVenues = asyncHandler(async (req, res) =>
 {
@@ -58,8 +59,7 @@ const fetchEvents = asyncHandler(async (req, res) =>
 
 const fetchUpcomingEvents = asyncHandler(async (req, res) =>
 {
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
+	const today = moment().startOf("day").subtract(0, "days");
 
 	const events = await Event.find({ eventStartDate: { $gte: today } })
 		.populate('eventVenue')

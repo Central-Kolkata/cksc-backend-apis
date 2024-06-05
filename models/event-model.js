@@ -57,6 +57,10 @@ const eventSchema = mongoose.Schema(
 		{
 			type: String
 		},
+		earlyBirdDate:
+		{
+			type: Date
+		},
 		attachmentURL:
 		{
 			type: [String]
