@@ -63,7 +63,7 @@ const memberSchema = mongoose.Schema(
 		type:
 		{
 			type: String,
-			enum: ['member', 'non-member', 'patron'],
+			enum: ['member', 'non-member', 'patron', 'new-member'],
 			default: 'member'
 		}
 	},
