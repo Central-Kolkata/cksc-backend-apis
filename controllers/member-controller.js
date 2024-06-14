@@ -42,9 +42,30 @@ const updateMember = asyncHandler(async (req, res) =>
 	res.status(200).json({ message: "Member details successfully updated!" });
 });
 
-const bulkUpdateMembers = asyncHandler(async (req, res) =>
+const updateEventRegistration = asyncHandler(async (req, res) =>
 {
+	const { memberId, eventId } = req.params;
+	const { referredBy } = req.body;
 
+	try
+	{
+		const updatedEventRegistration = await EventRegistration.findOneAndUpdate(
+			{ memberId, eventId },
+			{ referredBy },
+			{ new: true, runValidators: true }
+		);
+
+		if (!updatedEventRegistration)
+		{
+			return res.status(404).json({ message: 'Event registration not found' });
+		}
+
+		res.status(200).json({ message: 'Event registration updated successfully', updatedEventRegistration });
+	}
+	catch (error)
+	{
+		res.status(500).json({ message: 'Failed to update event registration', error });
+	}
 });
 
 const standardizeCKSCNo = (ckscNo) =>
@@ -272,5 +293,5 @@ const asdf = asyncHandler(async (req, res) =>
 module.exports =
 {
 	fetchMembers, createMember, createMembers, fetchPendingAmount, updateMember, deleteMember,
-	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers
+	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers, updateEventRegistration
 };
