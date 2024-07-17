@@ -42,6 +42,34 @@ const updateMember = asyncHandler(async (req, res) =>
 	res.status(200).json({ message: "Member details successfully updated!" });
 });
 
+const updateMultipleMembers = asyncHandler(async (req, res) =>
+{
+	const updates = req.body;
+
+	const updatePromises = updates.map(async (update) =>
+	{
+		const { id, changes, deletion } = update;
+
+		let updateFields = {};
+
+		if (changes && changes.cksc)
+		{
+			updateFields.ckscMembershipNo = changes.cksc.newValue;
+		}
+
+		if (deletion)
+		{
+			updateFields.status = 'inactive';
+		}
+
+		return Member.findByIdAndUpdate(id, updateFields, { new: true });
+	});
+
+	const results = await Promise.all(updatePromises);
+
+	res.status(200).json({ message: 'Members successfully updated!', results });
+});
+
 const updateEventRegistration = asyncHandler(async (req, res) =>
 {
 	const { memberId, eventId } = req.params;
@@ -292,6 +320,6 @@ const asdf = asyncHandler(async (req, res) =>
 
 module.exports =
 {
-	fetchMembers, createMember, createMembers, fetchPendingAmount, updateMember, deleteMember,
+	fetchMembers, createMember, createMembers, fetchPendingAmount, updateMember, updateMultipleMembers, deleteMember,
 	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers, updateEventRegistration
 };
