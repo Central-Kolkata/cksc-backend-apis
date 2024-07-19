@@ -65,6 +65,10 @@ const memberSchema = mongoose.Schema(
 			type: String,
 			enum: ['member', 'non-member', 'patron', 'new-member'],
 			default: 'member'
+		},
+		reasonForInactivation:
+		{
+			type: String
 		}
 	},
 	{
