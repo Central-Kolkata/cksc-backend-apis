@@ -189,8 +189,7 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 	member = await Member.findOne(
 		{
 			...query,
-			type:
-				{ $in: ["member", "patron"] },
+			type: { $in: ["member", "patron"] },
 		});
 
 	// Step 2: If not found, search for 'non-member' or 'new-member'
@@ -199,8 +198,7 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 		member = await Member.findOne(
 			{
 				...query,
-				type:
-					{ $in: ["non-member", "new-member"] },
+				type: { $in: ["non-member", "new-member"] },
 			});
 	}
 
@@ -241,8 +239,6 @@ const fetchRegisteredEvents = asyncHandler(async (req, res) =>
 
 	const registeredEvents = await EventRegistration.find({ memberId: memberId })
 		.populate('eventId');
-
-
 
 	const eventsDetails = registeredEvents.map(registration => registration.eventId);
 
