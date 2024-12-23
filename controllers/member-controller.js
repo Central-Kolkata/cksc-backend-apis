@@ -171,23 +171,40 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 {
 	let member;
 
+	const query =
+	{
+		status: { $ne: "deleted" },
+	};
+
 	if (req.params.icaiMembershipNo.length === 10)
 	{
-		member = await Member.findOne(
-			{
-				mobile: req.params.icaiMembershipNo,
-				status: { $ne: "deleted" }
-			});
+		query.mobile = req.params.icaiMembershipNo;
 	}
 	else
 	{
+		query.icaiMembershipNo = req.params.icaiMembershipNo;
+	}
+
+	// Step 1: Find a member with type 'member' or 'patron'
+	member = await Member.findOne(
+		{
+			...query,
+			type:
+				{ $in: ["member", "patron"] },
+		});
+
+	// Step 2: If not found, search for 'non-member' or 'new-member'
+	if (!member)
+	{
 		member = await Member.findOne(
 			{
-				icaiMembershipNo: req.params.icaiMembershipNo,
-				status: { $ne: "deleted" }
+				...query,
+				type:
+					{ $in: ["non-member", "new-member"] },
 			});
 	}
 
+	// Step 3: Handle case where no member is found
 	if (!member)
 	{
 		return res.status(404).json(
@@ -196,7 +213,8 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 			});
 	}
 
-	let event;
+	// Step 4: Find event information if `eventIdForRegistration` is provided
+	let event = null;
 
 	if (req.params.eventIdForRegistration)
 	{
@@ -204,15 +222,16 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 			{
 				eventId: req.params.eventIdForRegistration,
 				memberId: member._id,
-				status: "confirmed"
+				status: "confirmed",
 			});
 	}
 
+	// Respond with the member and event data
 	res.status(200).json(
 		{
 			message: "Data fetched successfully",
 			response: member,
-			event
+			event,
 		});
 });
 
