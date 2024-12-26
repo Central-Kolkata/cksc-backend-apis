@@ -173,7 +173,7 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 
 	const query =
 	{
-		status: { $ne: "deleted" },
+		status: { $nin: ["deleted", "inactive"] },
 	};
 
 	if (req.params.icaiMembershipNo.length === 10)
