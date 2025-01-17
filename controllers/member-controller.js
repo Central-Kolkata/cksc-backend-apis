@@ -167,6 +167,106 @@ const deleteMember = asyncHandler(async (req, res) =>
 	res.status(200).json({ message: "Member Deleted Successfully" });
 });
 
+const checkCKSCMembershipNo = asyncHandler(async (req, res) =>
+{
+	try
+	{
+		const { ckscMembershipNo: ckscMembershipNo } = req.params;
+
+		if (!ckscMembershipNo)
+		{
+			return res.status(400).json(
+				{
+					success: false,
+					message: 'Please provide a CKSC membership number.',
+				});
+		}
+
+		const member = await Member.findOne(
+			{
+				ckscMembershipNo: ckscMembershipNo,
+				status: { $ne: 'deleted' },
+			});
+
+		if (!member)
+		{
+			return res.status(404).json(
+				{
+					success: false,
+					message: 'No matching member found.',
+				});
+		}
+
+		return res.status(200).json(
+			{
+				success: true,
+				message: 'Member found!',
+				member,
+			});
+	}
+	catch (error)
+	{
+		console.error('Error checking membership number:', error);
+
+		return res.status(500).json(
+			{
+				success: false,
+				message: 'Unable to check membership number. Please try again.',
+				error: error.toString(),
+			});
+	}
+});
+
+const checkICAIMembershipNo = asyncHandler(async (req, res) =>
+{
+	try
+	{
+		const { icaiMembershipNo: icaiMembershipNo } = req.params;
+
+		if (!icaiMembershipNo)
+		{
+			return res.status(400).json(
+				{
+					success: false,
+					message: 'Please provide a ICAI membership number.',
+				});
+		}
+
+		const member = await Member.findOne(
+			{
+				icaiMembershipNo: icaiMembershipNo,
+				status: { $ne: 'deleted' },
+			});
+
+		if (!member)
+		{
+			return res.status(404).json(
+				{
+					success: false,
+					message: 'No matching member found.',
+				});
+		}
+
+		return res.status(200).json(
+			{
+				success: true,
+				message: 'Member found!',
+				member,
+			});
+	}
+	catch (error)
+	{
+		console.error('Error checking membership number:', error);
+
+		return res.status(500).json(
+			{
+				success: false,
+				message: 'Unable to check membership number. Please try again.',
+				error: error.toString(),
+			});
+	}
+});
+
 const fetchPendingAmount = asyncHandler(async (req, res) =>
 {
 	let member;
@@ -297,44 +397,11 @@ const memberTransactions = asyncHandler(async (req, res) =>
 
 const asdf = asyncHandler(async (req, res) =>
 {
-	const name = req.query.name;
-	const members = await Member.find(
-		{
-			name: { $regex: `^${name}$`, $options: 'i' }
-		});
-
-	const memberIds = members.map(member => member._id);
-
-	const eventRegistrations = await EventRegistration.find(
-		{
-			memberId: { $in: memberIds }
-		});
-
-	const memberPayments = await MemberPayment.find(
-		{
-			memberId: { $in: memberIds }
-		});
-
-	const eventMembers = eventRegistrations.map(er => er.memberId);
-	const payMembers = memberPayments.map(er => er.memberId);
-
-	const combinedMembers = eventMembers.concat(payMembers);
-	const uniqueMembers = combinedMembers.filter((memberId, index) => combinedMembers.indexOf(memberId) === index);
-
-	const nonUniqueMembers = await Member.updateMany(
-		{
-			_id: { $nin: uniqueMembers },
-			name: { $regex: `^${name}$`, $options: 'i' }
-		},
-		{
-			$set: { status: 'inactive' }
-		});
-
-	res.status(200).json({ nonUniqueMembers });
+	res.json("asdf");
 });
 
 module.exports =
 {
-	fetchMembers, createMember, createMembers, fetchPendingAmount, updateMember, updateMultipleMembers, deleteMember,
+	fetchMembers, checkCKSCMembershipNo, checkICAIMembershipNo, createMember, createMembers, fetchPendingAmount, updateMember, updateMultipleMembers, deleteMember,
 	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers, updateEventRegistration
 };
