@@ -72,6 +72,22 @@ const eventSchema = mongoose.Schema(
 		attachmentName:
 		{
 			type: [String]
+		},
+		contactPerson1Name:
+		{
+			type: String,
+		},
+		contactPerson1Mobile:
+		{
+			type: String,
+		},
+		contactPerson2Name:
+		{
+			type: String,
+		},
+		contactPerson2Mobile:
+		{
+			type: String,
 		}
 	},
 	{
