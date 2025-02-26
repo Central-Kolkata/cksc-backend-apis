@@ -289,7 +289,7 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 	member = await Member.findOne(
 		{
 			...query,
-			type: { $in: ["member", "patron"] },
+			type: { $in: ["member", "patron", "lifetime-member"] },
 		});
 
 	// Step 2: If not found, search for 'non-member' or 'new-member'
