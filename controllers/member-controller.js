@@ -9,7 +9,7 @@ const axios = require("axios");
 
 const fetchMembers = asyncHandler(async (req, res) =>
 {
-	const members = await Member.find({ status: "active" });
+	const members = await Member.find();
 
 	res.status(200).json({ members });
 });
@@ -285,7 +285,7 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 		query.icaiMembershipNo = req.params.icaiMembershipNo;
 	}
 
-	// Step 1: Find a member with type 'member' or 'patron'
+	// Step 1: Find a member with type 'member' or 'patron' or 'lifetime-member'
 	member = await Member.findOne(
 		{
 			...query,
