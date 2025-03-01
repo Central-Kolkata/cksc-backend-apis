@@ -52,16 +52,20 @@ const eventRegistrationSchema = mongoose.Schema(
 		memberType:
 		{
 			type: String,
-			enum: ['member', 'non-member', 'patron'],
+			enum: ['member', 'non-member', 'patron', 'lifetime-member'],
 			default: 'member'
 		},
 		paymentStatus:
 		{
 			type: String,
-			enum: ['paid', 'unpaid', 'pending'],
+			enum: ['paid', 'unpaid', 'pending', 'not-needed'],
 			default: 'pending'
 		},
 		remarks:
+		{
+			type: String
+		},
+		deregistrationRemarks:
 		{
 			type: String
 		}

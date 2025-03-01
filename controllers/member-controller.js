@@ -73,13 +73,70 @@ const updateMultipleMembers = asyncHandler(async (req, res) =>
 const updateEventRegistration = asyncHandler(async (req, res) =>
 {
 	const { memberId, eventId } = req.params;
-	const { referredBy } = req.body;
+	const
+		{
+			referredBy,
+			remarks,
+			paymentStatus,
+			status,
+			transactionRefNo,
+			transactionAmount,
+			currentPendingAmount,
+			eventAmount,
+			memberType,
+		} = req.body;
+
+	const updateFields = {};
+	if (referredBy !== undefined)
+	{
+		updateFields.referredBy = referredBy;
+	}
+
+	if (remarks !== undefined)
+	{
+		updateFields.remarks = remarks;
+	}
+
+	if (paymentStatus !== undefined)
+	{
+		updateFields.paymentStatus = paymentStatus;
+	}
+
+	if (status !== undefined)
+	{
+		updateFields.status = status;
+	}
+
+	if (transactionRefNo !== undefined)
+	{
+		updateFields.transactionRefNo = transactionRefNo;
+	}
+
+	if (transactionAmount !== undefined)
+	{
+		updateFields.transactionAmount = transactionAmount;
+	}
+
+	if (currentPendingAmount !== undefined)
+	{
+		updateFields.currentPendingAmount = currentPendingAmount;
+	}
+
+	if (eventAmount !== undefined)
+	{
+		updateFields.eventAmount = eventAmount;
+	}
+
+	if (memberType !== undefined)
+	{
+		updateFields.memberType = memberType;
+	}
 
 	try
 	{
 		const updatedEventRegistration = await EventRegistration.findOneAndUpdate(
 			{ memberId, eventId },
-			{ referredBy },
+			updateFields,
 			{ new: true, runValidators: true }
 		);
 
@@ -93,6 +150,40 @@ const updateEventRegistration = asyncHandler(async (req, res) =>
 	catch (error)
 	{
 		res.status(500).json({ message: 'Failed to update event registration', error });
+	}
+});
+
+const removeEventRegistration = asyncHandler(async (req, res) =>
+{
+	console.log("asdf");
+
+	const { memberId, eventId } = req.params;
+	const { remarks } = req.body;
+
+	try
+	{
+		// Soft remove: set status to 'cancelled', store remarks if provided
+		const updatedRegistration = await EventRegistration.findOneAndUpdate(
+			{ memberId, eventId },
+			{ status: "cancelled", deregistrationRemarks: remarks },
+			{ new: true, runValidators: true }
+		);
+
+		if (!updatedRegistration)
+		{
+			return res.status(404).json({ message: "Event registration not found." });
+		}
+
+		return res.status(200).json({
+			message: "Event registration removed successfully.",
+			updatedRegistration,
+		});
+	} catch (error)
+	{
+		res.status(500).json({
+			message: "Failed to remove event registration",
+			error: error.message,
+		});
 	}
 });
 
@@ -403,5 +494,5 @@ const asdf = asyncHandler(async (req, res) =>
 module.exports =
 {
 	fetchMembers, checkCKSCMembershipNo, checkICAIMembershipNo, createMember, createMembers, fetchPendingAmount, updateMember, updateMultipleMembers, deleteMember,
-	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers, updateEventRegistration
+	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers, updateEventRegistration, removeEventRegistration
 };

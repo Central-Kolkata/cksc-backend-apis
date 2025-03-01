@@ -3,7 +3,7 @@ const router = express.Router();
 const {
 	fetchMembers, checkCKSCMembershipNo, checkICAIMembershipNo, createMember, createMembers, fetchPendingAmount,
 	updateMember, updateMultipleMembers, deleteMember, fetchRegisteredEvents, memberTransactions,
-	asdf, replaceMembers, updateEventRegistration } = require("../controllers/member-controller");
+	asdf, replaceMembers, updateEventRegistration, removeEventRegistration } = require("../controllers/member-controller");
 
 router.route(`/`).get(fetchMembers).post(createMember);
 router.route(`/asdf`).get(asdf);
@@ -19,5 +19,6 @@ router.route(`/events/:memberId`).get(fetchRegisteredEvents);
 router.route(`/:memberId/transactions`).get(memberTransactions);
 
 router.route(`/:memberId/event/:eventId`).patch(updateEventRegistration);
+router.route(`/:memberId/event/:eventId/remove`).patch(removeEventRegistration);
 
 module.exports = router;

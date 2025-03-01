@@ -208,7 +208,9 @@ const fetchEventMembers = asyncHandler(async (req, res) =>
 						paymentStatus: registration.paymentStatus,
 						registrationDate: registration.registrationDate,
 						remarks: registration.remarks,
-						referredBy: registration.referredBy
+						referredBy: registration.referredBy,
+						deregistrationRemarks: registration.deregistrationRemarks,
+						status: registration.status
 					});
 			}
 			catch (error)
