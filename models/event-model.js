@@ -31,19 +31,26 @@ const eventSchema = mongoose.Schema(
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Venue'
 		},
-		freeEventForCKCA:
+		ckcaMemberCharge:
 		{
-			type: Boolean,
-			default: true
+			type: Number
+		},
+		patronMemberCharge:
+		{
+			type: Number
+		},
+		lifetimeMemberCharge:
+		{
+			type: Number
+		},
+		nonCKCAMemberCharge:
+		{
+			type: Number
 		},
 		isAnnualConference:
 		{
 			type: Boolean,
 			default: false
-		},
-		eventAmount:
-		{
-			type: Number
 		},
 		eventMaxParticipants:
 		{

@@ -155,8 +155,6 @@ const updateEventRegistration = asyncHandler(async (req, res) =>
 
 const removeEventRegistration = asyncHandler(async (req, res) =>
 {
-	console.log("asdf");
-
 	const { memberId, eventId } = req.params;
 	const { remarks } = req.body;
 
