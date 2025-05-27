@@ -228,7 +228,7 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 			return res.status(404).json({ error: "Payment request not found" });
 		}
 
-		const dbAmount = iciciPaymentRequest[0].amount;
+		const dbAmount = iciciPaymentRequest[0].amountAfterWaiver;
 
 		let paymentResponseDetails =
 		{
