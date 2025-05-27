@@ -52,6 +52,11 @@ const eventSchema = mongoose.Schema(
 			type: Boolean,
 			default: false
 		},
+		shouldAllowRegistrationWithoutPayment:
+		{
+			type: Boolean,
+			default: false
+		},
 		eventMaxParticipants:
 		{
 			type: Number

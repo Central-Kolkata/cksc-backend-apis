@@ -53,6 +53,11 @@ const receivePaymentResponse = asyncHandler(async (req, res) => handlePaymentRes
 
 const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icaiMembershipNo, mobile, email, referenceNo, amount = 0) =>
 {
+	if (paymentType === "MembershipTotal" || paymentType === "EventOnly")
+	{
+		paymentType = "Event";
+	}
+
 	if (isOneTimePayment && (paymentType === "New Member" || paymentType === "Event" || paymentType === "Annual Conference"))
 	{
 		return await handleNewMemberCreation(name, icaiMembershipNo, mobile, email, "", paymentType, amount);
@@ -248,7 +253,7 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 
 		if (isPaymentSuccessful)
 		{
-			if (isOneTimePayment == false && iciciPaymentRequest[0].paymentType != "Annual Conference")
+			if (isOneTimePayment == false && iciciPaymentRequest[0].paymentType != "Annual Conference" && iciciPaymentRequest[0].paymentType != "EventOnly")
 			{
 				await reduceThePendingAmount(dbAmount, iciciPaymentRequest[0].memberId);
 			}
