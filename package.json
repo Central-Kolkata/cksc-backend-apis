@@ -27,7 +27,8 @@
     "unirest": "^0.6.0",
     "uuid": "^9.0.0",
     "validator": "^13.11.0",
-    "wbm": "^1.1.16"
+    "wbm": "^1.1.16",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

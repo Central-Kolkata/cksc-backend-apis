@@ -3,29 +3,52 @@ const dotenv = require("dotenv").config();
 const { errorHandler } = require("./middlewares/error-middleware");
 const connectMongoDB = require("./config/db");
 const cors = require("cors");
+const authenticateJWT = require('./middlewares/auth-middleware');
 
 connectMongoDB();
 const port = process.env.PORT || 5001;
 const app = express();
 
+// Whitelist: login, reset, and ICICI bank response endpoints
+const jwtWhitelist = [
+	'/api/admin-users/login',
+	'/api/admin-users/reset/initiate',
+	/^\/api\/admin-users\/reset\/[^/]+\/verify$/, // regex for /api/admin-users/reset/:token/verify
+	/^\/api\/admin-users\/reset\/[^/]+$/,         // regex for /api/admin-users/reset/:token
+	'/api/bank/receiveOneTimePaymentResponse',
+	'/api/bank/receivePaymentResponse'
+];
+
+app.use(cors());
 app.use((req, res, next) =>
 {
 	res.setHeader("Access-Control-Allow-Origin", "*");
 	res.setHeader(
 		"Access-Control-Allow-Methods",
-		"GET, POST, OPTIONS, PUT, PATCH, DELETE",
+		"GET, POST, OPTIONS, PUT, PATCH, DELETE"
 	);
 	res.setHeader(
 		"Access-Control-Allow-Headers",
-		"Content-Type, Authorization, Accept-Language",
+		"Content-Type, Authorization, Accept-Language"
 	);
-
 	next();
 });
 
-app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
+
+app.use((req, res, next) =>
+{
+	const path = req.path;
+	const isWhitelisted = jwtWhitelist.some((route) =>
+		route instanceof RegExp ? route.test(path) : route === path
+	);
+	if (isWhitelisted)
+	{
+		return next();
+	}
+	return authenticateJWT(req, res, next);
+});
 
 app.use(`/api/members`, require("./routes/member-routes"));
 // app.use(`/api/atom`, require("./routes/atom-routes"));

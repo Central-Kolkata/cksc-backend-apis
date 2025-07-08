@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const AdminUser = require("../models/admin-user");
 const crypto = require("crypto");
 const { sendCKCAEmail } = require("./email-controller");
+const jwt = require("jsonwebtoken");
 
 // Create a new admin user
 const createAdminUser = asyncHandler(async (req, res) =>
@@ -89,9 +90,39 @@ const setNewPassword = asyncHandler(async (req, res) =>
 	res.json({ message: "Password has been set/reset successfully." });
 });
 
+// Login admin user and return JWT access token
+const loginAdminUser = asyncHandler(async (req, res) =>
+{
+	const { username, email, password } = req.body;
+	if ((!username && !email) || !password)
+	{
+		res.status(400);
+		throw new Error("Username or email and password are required");
+	}
+	const adminUser = await AdminUser.findOne(username ? { username } : { email });
+	if (!adminUser)
+	{
+		res.status(401);
+		throw new Error("Invalid credentials");
+	}
+	const isMatch = await bcrypt.compare(password, adminUser.password);
+	if (!isMatch)
+	{
+		res.status(401);
+		throw new Error("Invalid credentials");
+	}
+	const token = jwt.sign(
+		{ id: adminUser._id, username: adminUser.username, email: adminUser.email },
+		process.env.JWT_SECRET,
+		{ expiresIn: "1h" }
+	);
+	res.json({ accessToken: token });
+});
+
 module.exports = {
 	createAdminUser,
 	initiatePasswordReset,
 	verifyResetToken,
-	setNewPassword
+	setNewPassword,
+	loginAdminUser
 }; 
