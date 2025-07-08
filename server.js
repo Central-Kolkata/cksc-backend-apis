@@ -38,6 +38,7 @@ app.use(`/api/transactions`, require("./routes/transaction-routes"));
 app.use(`/api/events`, require("./routes/event-routes"));
 app.use(`/api/emailService`, require("./routes/email-routes"));
 app.use(`/api/upload`, require("./routes/upload-routes"));
+app.use(`/api/admin-users`, require("./routes/admin-user-routes"));
 
 app.use(errorHandler);
 
