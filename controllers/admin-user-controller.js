@@ -29,8 +29,8 @@ const createAdminUser = asyncHandler(async (req, res) =>
 // Initiate password reset or set password (send token link)
 const initiatePasswordReset = asyncHandler(async (req, res) =>
 {
-	const { username } = req.body;
-	const adminUser = await AdminUser.findOne({ username });
+	const { username, email, password } = req.body;
+	const adminUser = await AdminUser.findOne({ $or: [{ username }, { email }] });
 	if (!adminUser)
 	{
 		res.status(404);
