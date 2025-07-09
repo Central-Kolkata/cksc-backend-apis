@@ -6,6 +6,7 @@ const MemberPayment = require('../models/member-payment'); // Update the path ac
 const ICICIPaymentRequest = require('../models/icici-payment-request');
 const ICICIPaymentResponse = require('../models/icici-payment-response');
 const axios = require("axios");
+const jwt = require("jsonwebtoken");
 
 const fetchMembers = asyncHandler(async (req, res) =>
 {
@@ -413,12 +414,24 @@ const fetchPendingAmount = asyncHandler(async (req, res) =>
 			});
 	}
 
-	// Respond with the member and event data
+	// Generate JWT for the member
+	const token = jwt.sign(
+		{
+			id: member._id,
+			icaiMembershipNo: member.icaiMembershipNo,
+			ckscMembershipNo: member.ckscMembershipNo
+		},
+		process.env.JWT_SECRET,
+		{ expiresIn: "1h" }
+	);
+
+	// Respond with the member, event data, and token
 	res.status(200).json(
 		{
 			message: "Data fetched successfully",
 			response: member,
 			event,
+			token
 		});
 });
 

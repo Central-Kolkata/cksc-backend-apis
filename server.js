@@ -16,7 +16,10 @@ const jwtWhitelist = [
 	/^\/api\/admin-users\/reset\/[^/]+\/verify$/, // regex for /api/admin-users/reset/:token/verify
 	/^\/api\/admin-users\/reset\/[^/]+$/,         // regex for /api/admin-users/reset/:token
 	'/api/bank/receiveOneTimePaymentResponse',
-	'/api/bank/receivePaymentResponse'
+	'/api/bank/receivePaymentResponse',
+	'/api/events/fetchUpcomingEvents',
+	/^\/api\/members\/fetchPendingAmount\/[^/]+\/[^/]+$/, // regex for /api/members/fetchPendingAmount/:param1/:param2
+	'/api/bank/fetchOneTimePaymentRequestURL'
 ];
 
 app.use(cors());
