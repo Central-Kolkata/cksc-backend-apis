@@ -8,6 +8,7 @@ const EventRegistration = require("../models/event-registration-model");
 const Member = require("../models/member-model");
 const MemberPayment = require("../models/member-payment");
 const Venue = require("../models/venue-model");
+const Event = require("../models/event-model");
 const { NotFoundError } = require("../middlewares/errors");
 const jwt = require("jsonwebtoken");
 
