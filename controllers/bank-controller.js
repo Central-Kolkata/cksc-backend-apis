@@ -9,6 +9,7 @@ const Member = require("../models/member-model");
 const MemberPayment = require("../models/member-payment");
 const Venue = require("../models/venue-model");
 const { NotFoundError } = require("../middlewares/errors");
+const jwt = require("jsonwebtoken");
 
 const getNextCKSCMembershipNo = async () =>
 {
@@ -184,13 +185,25 @@ const registerOneTimeMember = asyncHandler(async (req, res) =>
 	const member = await Member.findById(newMember._id);
 	const venue = await Venue.findById(event.eventVenue);
 
-	// Send response back with event registration details
+	// Generate JWT for the new member
+	const token = jwt.sign(
+		{
+			id: member._id,
+			icaiMembershipNo: member.icaiMembershipNo,
+			ckscMembershipNo: member.ckscMembershipNo
+		},
+		process.env.JWT_SECRET,
+		{ expiresIn: "1h" }
+	);
+
+	// Send response back with event registration details and token
 	res.status(201).json(
 		{
 			message: "Event Registration Successful!",
 			event,
 			member,
-			venue
+			venue,
+			token
 		});
 });
 
