@@ -12,7 +12,7 @@ router.post("/reset/:token", setNewPassword);
 // Protect all other admin user routes with JWT
 router.use(authenticateJWT);
 
-router.post("/", createAdminUser);
 // ... add more protected admin routes here ...
+router.post("/", createAdminUser);
 
 module.exports = router; 
