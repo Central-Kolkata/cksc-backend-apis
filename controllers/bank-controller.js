@@ -71,12 +71,12 @@ const createNewMemberIfNeeded = async (isOneTimePayment, paymentType, name, icai
 // Function to handle new member creation
 const handleNewMemberCreation = async (name, icaiMembershipNo, mobile, email, referenceNo, paymentType, amount = 0) =>
 {
-	const type = (paymentType === "Event" || paymentType === "Annual Conference") ? "non-member" : "member";
+	const type = (paymentType === "Event" || paymentType === "Annual Conference") ? "non-member" : "new-member";
 
 	const newMember = await Member.create(
 		{
 			name, icaiMembershipNo, ckscMembershipNo: referenceNo, pendingAmount: amount,
-			mobile, email, active: true, type
+			mobile, email, active: false, type
 		});
 
 	return newMember;
@@ -269,6 +269,7 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 		{
 			if (isOneTimePayment == false && iciciPaymentRequest[0].paymentType != "Annual Conference" && iciciPaymentRequest[0].paymentType != "EventOnly")
 			{
+				await updateMemberTypeAndStatusIfNeeded(iciciPaymentRequest[0].memberId);
 				await reduceThePendingAmount(dbAmount, iciciPaymentRequest[0].memberId);
 			}
 		}
@@ -396,6 +397,33 @@ const reduceThePendingAmount = async (amountToReduce, memberId) =>
 
 	await member.save();
 };
+
+// Update member type/status if needed
+async function updateMemberTypeAndStatusIfNeeded(memberId)
+{
+	const member = await Member.findById(memberId);
+
+	if (member)
+	{
+		let updated = false;
+
+		if (member.type === 'new-member')
+		{
+			member.type = 'member';
+
+			if (member.status === 'inactive')
+			{
+				member.status = 'active';
+				updated = true;
+			}
+		}
+
+		if (updated)
+		{
+			await member.save();
+		}
+	}
+}
 
 const encryptData = ((plainText, outputEncoding = "base64") =>
 {
