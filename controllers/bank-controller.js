@@ -283,6 +283,15 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 			paymentStatus: `${isPaymentSuccessful ? "paid" : "unpaid"}`
 		};
 
+		// if member is non-member, set pendingAmount to zero
+		const member = await Member.findById(iciciPaymentRequest[0].memberId);
+
+		if (member && member.type === 'non-member')
+		{
+			member.pendingAmount = 0;
+			await member.save();
+		}
+
 		// Assuming MemberPayment.create function exists and is used to log/track member payment statuses
 		const memberPaymentResponse = await MemberPayment.create(memberPaymentResponseDetails);
 
