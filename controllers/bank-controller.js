@@ -267,9 +267,10 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 
 		if (isPaymentSuccessful)
 		{
+			await updateMemberTypeAndStatusIfNeeded(iciciPaymentRequest[0].memberId);
+
 			if (isOneTimePayment == false && iciciPaymentRequest[0].paymentType != "Annual Conference" && iciciPaymentRequest[0].paymentType != "EventOnly")
 			{
-				await updateMemberTypeAndStatusIfNeeded(iciciPaymentRequest[0].memberId);
 				await reduceThePendingAmount(dbAmount, iciciPaymentRequest[0].memberId);
 			}
 		}
