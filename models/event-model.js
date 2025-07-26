@@ -57,6 +57,11 @@ const eventSchema = mongoose.Schema(
 			type: Boolean,
 			default: false
 		},
+		hasCPEHours:
+		{
+			type: Boolean,
+			default: false
+		},
 		eventMaxParticipants:
 		{
 			type: Number
