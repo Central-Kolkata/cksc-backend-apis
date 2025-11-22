@@ -41,15 +41,25 @@ app.use((req, res, next) =>
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
 
-app.use((req, res, next) =>
-{
+
+app.use((req, res, next) => {
 	const path = req.path;
 	const isWhitelisted = jwtWhitelist.some((route) =>
 		route instanceof RegExp ? route.test(path) : route === path
 	);
-	if (isWhitelisted)
-	{
+	// Allow /api/emailService/sendCKCAEmail and /api/emailService/sendEmailForAKP if Origin/Referer is centralkolkata.org
+	const allowedEmailPaths = [
+		'/api/emailService/sendCKCAEmail',
+		'/api/emailService/sendEmailForAKP'
+	];
+	if (isWhitelisted) {
 		return next();
+	}
+	if (allowedEmailPaths.includes(path)) {
+		const origin = req.get('origin') || req.get('referer') || '';
+		if (origin.includes('centralkolkata.org')) {
+			return next();
+		}
 	}
 	return authenticateJWT(req, res, next);
 });
