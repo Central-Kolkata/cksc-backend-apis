@@ -21,14 +21,16 @@ const transporterCKCA = createTransporter(process.env.GOOGLE_EMAIL, process.env.
 const transporterAKP = createTransporter(process.env.GOOGLE_EMAIL_AKP, process.env.GOOGLE_EMAIL_AKP_APP_PASSWORD);
 
 // Function to send email
-const sendEmail = async (transporter, fromName, fromAddress, emailObject, res) =>
-{
-	try
-	{
-		const emailOptions =
-		{
-			from:
-			{
+const sendEmail = async (transporter, fromName, fromAddress, emailObject, res) => {
+	try {
+		console.log('Preparing to send email:', {
+			fromName,
+			fromAddress,
+			to: emailObject.email,
+			subject: emailObject.subject
+		});
+		const emailOptions = {
+			from: {
 				name: fromName,
 				address: fromAddress,
 			},
@@ -38,20 +40,16 @@ const sendEmail = async (transporter, fromName, fromAddress, emailObject, res) =
 			text: emailObject.body,
 			html: emailObject.body,
 		};
-
+		console.log('Email options ready, sending...');
 		const output = await transporter.sendMail(emailOptions);
-
-		if (output.accepted.length > 0)
-		{
+		console.log('Email sendMail output:', output);
+		if (output.accepted.length > 0) {
 			res.send("Success");
-		}
-		else
-		{
+		} else {
 			res.send(output);
 		}
-	}
-	catch (error)
-	{
+	} catch (error) {
+		console.error('Error sending email:', error);
 		res.status(500).json({ error });
 	}
 };
