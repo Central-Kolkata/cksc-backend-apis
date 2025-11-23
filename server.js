@@ -42,8 +42,12 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
 
 
-app.use((req, res, next) =>
-{
+// Health check endpoint (public, no auth)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'CKSC backend is healthy' });
+});
+
+app.use((req, res, next) => {
 	const path = req.path;
 	const isWhitelisted = jwtWhitelist.some((route) =>
 		route instanceof RegExp ? route.test(path) : route === path
