@@ -350,11 +350,11 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 			res.redirect(`${process.env.CKSC_BASE_URL}/payment-response.html?${queryString}`);
 		}
 
-		const paymentRequest = await ICICIPaymentRequest.find({ referenceNo: ckscReferenceNo });
+		const paymentRequest = await ICICIPaymentRequest.find({ referenceNo: String(ckscReferenceNo) });
 
 		const paymentResponse = await ICICIPaymentResponse.create(
 			{
-				"ckscReferenceNo": ckscReferenceNo,
+				"ckscReferenceNo": String(ckscReferenceNo),
 				"responseCode": responseCode,
 				"iciciReferenceNo": iciciReferenceNo,
 				"serviceTaxAmount": serviceTaxAmount,
@@ -398,9 +398,10 @@ const receiveOneTimePaymentResponse = asyncHandler(async (req, res) =>
 	}
 });
 
+
 const activateTheMember = async (ckscReferenceNo) =>
 {
-	const member = await Member.findOne({ "ckscMembershipNo": ckscReferenceNo });
+	const member = await Member.findOne({ "ckscMembershipNo": String(ckscReferenceNo) });
 
 	if (!member)
 	{

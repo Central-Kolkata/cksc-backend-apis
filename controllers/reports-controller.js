@@ -72,7 +72,7 @@ const fetchAllPaymentDetails = asyncHandler(async (req, res) =>
     {
         const paymentRequest = await ICICIPaymentRequest.findOne(
             {
-                referenceNo: paymentResponse.ckscReferenceNo
+                referenceNo: String(paymentResponse.ckscReferenceNo)
             });
 
         if (paymentRequest)
@@ -209,10 +209,11 @@ const fetchAllPaymentDetailsJSON = asyncHandler(async (req, res) =>
 
     for (const paymentResponse of iciciPaymentResponses)
     {
+
         const iciciPaymentRequest = await ICICIPaymentRequest.find(
             {
                 amount: 300,
-                referenceNo: paymentResponse.ckscReferenceNo
+                referenceNo: String(paymentResponse.ckscReferenceNo)
             });
 
         allPaymentDetails.push(

@@ -136,7 +136,7 @@ const register = asyncHandler(async (req, res) =>
 	const member = await Member.findById(memberId);
 	const venue = await Venue.findById(event.eventVenue);
 
-	const paymentResponse = await ICICIPaymentResponse.findOne({ iciciReferenceNo });
+	const paymentResponse = await ICICIPaymentResponse.findOne({ iciciReferenceNo: String(iciciReferenceNo) });
 
 	if (paymentResponse)
 	{

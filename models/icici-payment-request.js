@@ -46,7 +46,7 @@ const iciciPaymentRequestSchema = mongoose.Schema(
 		},
 		ckscReferenceNo:
 		{
-			type: Number
+			type: String
 		},
 		paymentType:
 		{

@@ -105,7 +105,7 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 			memberId: effectiveMemberId,
 			icaiMembershipNo, name, email, mobile, address, pan,
 			amount, amountAfterWaiver,
-			ckscReferenceNo: referenceNo,
+			ckscReferenceNo: String(referenceNo),
 			paymentType,
 			paymentDescription: isOneTimePayment ? selectedEvent : "",
 			paymentRemarks: remarks,
@@ -132,7 +132,7 @@ const constructPaymentURL = (referenceNo, amount, name, mobile, address, pan, em
 		"mandatory fields": encryptData(mandatoryFields),
 		"optional fields": "",
 		"returnurl": encryptData(`${process.env.BACKEND_BASE_URL}${returnUrl}`),
-		"Reference No": encryptData(referenceNo),
+		"Reference No": encryptData(String(referenceNo)),
 		"submerchantid": encryptData(process.env.ICICI_SUB_MERCHANT_ID),
 		"transaction amount": encryptData(amount),
 		"paymode": encryptData(process.env.ICICI_PAYMODE)
@@ -235,7 +235,7 @@ const handlePaymentResponse = asyncHandler(async (req, res, isOneTimePayment = f
 			} = req;
 
 		const isPaymentSuccessful = responseCode === "E000";
-		const iciciPaymentRequest = await ICICIPaymentRequest.find({ ckscReferenceNo: ckscReferenceNo });
+		const iciciPaymentRequest = await ICICIPaymentRequest.find({ ckscReferenceNo: String(ckscReferenceNo) });
 
 		if (!iciciPaymentRequest || iciciPaymentRequest.length === 0) 
 		{
