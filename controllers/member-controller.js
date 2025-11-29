@@ -469,23 +469,23 @@ const memberTransactions = asyncHandler(async (req, res) =>
 		// Format the response as needed
 		const transactions = memberPayments.map(payment =>
 		{
-			   return {
-				   // Fields from MemberPayment
-				   paymentStatus: payment.paymentStatus,
+			return {
+				// Fields from MemberPayment
+				paymentStatus: payment.paymentStatus,
 
-				   // Fields from ICICIPaymentRequest
-				   referenceNo: String(payment.iciciPaymentRequestId.referenceNo),
-				   paymentDescription: payment.iciciPaymentRequestId.paymentDescription || 'NA',
-				   paymentRemarks: payment.iciciPaymentRequestId.paymentRemarks || 'NA',
-				   requestedAmount: payment.iciciPaymentRequestId.amount,
-				   paymentType: payment.iciciPaymentRequestId.paymentType || 'NA',
+				// Fields from ICICIPaymentRequest
+				referenceNo: String(payment.iciciPaymentRequestId.referenceNo),
+				paymentDescription: payment.iciciPaymentRequestId.paymentDescription || 'NA',
+				paymentRemarks: payment.iciciPaymentRequestId.paymentRemarks || 'NA',
+				requestedAmount: payment.iciciPaymentRequestId.amount,
+				paymentType: payment.iciciPaymentRequestId.paymentType || 'NA',
 
-				   // Fields from ICICIPaymentResponse
-				   iciciReferenceNo: payment.iciciPaymentResponseId.iciciReferenceNo,
-				   transactionDate: payment.iciciPaymentResponseId.transactionDate,
-				   paymentMode: payment.iciciPaymentResponseId.paymentMode,
-				   transactionAmount: payment.iciciPaymentResponseId.transactionAmount,
-			   };
+				// Fields from ICICIPaymentResponse
+				iciciReferenceNo: payment.iciciPaymentResponseId.iciciReferenceNo,
+				transactionDate: payment.iciciPaymentResponseId.transactionDate,
+				paymentMode: payment.iciciPaymentResponseId.paymentMode,
+				transactionAmount: payment.iciciPaymentResponseId.transactionAmount,
+			};
 		});
 
 		res.status(200).json({ transactions });
