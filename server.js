@@ -21,7 +21,8 @@ const jwtWhitelist = [
 	/^\/api\/members\/fetchPendingAmount\/[^/]+\/?$/, // regex for /api/members/fetchPendingAmount/:membershipNo or with trailing slash
 	/^\/api\/members\/fetchPendingAmount\/[^/]+\/[^/]+$/, // regex for /api/members/fetchPendingAmount/:param1/:param2
 	'/api/bank/fetchOneTimePaymentRequestURL',
-	'/api/bank/registerOneTimeMember'
+	'/api/bank/registerOneTimeMember',
+	'/api/events/register'
 ];
 
 app.use(cors());
