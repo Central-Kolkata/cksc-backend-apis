@@ -18,6 +18,7 @@ const jwtWhitelist = [
 	'/api/bank/receiveOneTimePaymentResponse',
 	'/api/bank/receivePaymentResponse',
 	'/api/events/fetchUpcomingEvents',
+	/^\/api\/members\/fetchPendingAmount\/[^/]+$/, // regex for /api/members/fetchPendingAmount/:membershipNo
 	/^\/api\/members\/fetchPendingAmount\/[^/]+\/[^/]+$/, // regex for /api/members/fetchPendingAmount/:param1/:param2
 	'/api/bank/fetchOneTimePaymentRequestURL',
 	'/api/bank/registerOneTimeMember'
