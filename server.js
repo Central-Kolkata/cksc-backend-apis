@@ -50,28 +50,16 @@ app.use('/health', require('./routes/health-routes'));
 
 app.use((req, res, next) =>
 {
-	const path = req.path;
-	const isWhitelisted = jwtWhitelist.some((route) =>
-		route instanceof RegExp ? route.test(path) : route === path
-	);
-	// Allow /api/emailService/sendCKCAEmail and /api/emailService/sendEmailForAKP if Origin/Referer is centralkolkata.org
-	const allowedEmailPaths = [
-		'/api/emailService/sendCKCAEmail',
-		'/api/emailService/sendEmailForAKP'
-	];
-	if (isWhitelisted)
-	{
-		return next();
-	}
-	if (allowedEmailPaths.includes(path))
-	{
-		const origin = req.get('origin') || req.get('referer') || '';
-		if (origin.includes('centralkolkata.org'))
-		{
-			return next();
-		}
-	}
-	return authenticateJWT(req, res, next);
+	       const path = req.path;
+	       const isWhitelisted = jwtWhitelist.some((route) =>
+		       route instanceof RegExp ? route.test(path) : route === path
+	       );
+	       const origin = req.get('origin') || req.get('referer') || '';
+	       // Allow all requests from centralkolkata.org (Origin or Referer)
+	       if (isWhitelisted || origin.includes('centralkolkata.org')) {
+		       return next();
+	       }
+	       return authenticateJWT(req, res, next);
 });
 
 app.use(`/api/members`, require("./routes/member-routes"));
