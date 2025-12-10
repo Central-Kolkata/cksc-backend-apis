@@ -42,5 +42,4 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: |
           pip install awsebcli
-          eb init -i cksc-backend-apis --region ${{ secrets.AWS_REGION }} --platform "Node.js 20"
           eb deploy ${{ secrets.EB_ENVIRONMENT_NAME }} --verbose
