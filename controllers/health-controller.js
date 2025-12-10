@@ -6,7 +6,12 @@ const router = express.Router();
 // GET /health
 router.get('/', (req, res) =>
 {
-	res.status(200).json({ status: 'ok', message: 'CKSC backend is healthy and CICD enabled.' });
+	res.status(200).json({ 
+		status: 'ok', 
+		message: 'CKSC backend is healthy and CI/CD enabled!',
+		timestamp: new Date().toISOString(),
+		deployedAt: '2025-12-10T22:10:00Z'
+	});
 });
 
 module.exports = router;
