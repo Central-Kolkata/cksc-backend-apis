@@ -128,7 +128,8 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 // Function to construct the payment URL
 const constructPaymentURL = (referenceNo, amount, name, mobile, address, pan, email, returnUrl) =>
 {
-	const mandatoryFields = `${referenceNo}|${process.env.ICICI_SUB_MERCHANT_ID}|${amount}|${name}|${mobile}|${address}|${pan}|${email}`;
+	const amountStr = String(amount);
+	const mandatoryFields = `${referenceNo}|${process.env.ICICI_SUB_MERCHANT_ID}|${amountStr}|${name}|${mobile}|${address}|${pan}|${email}`;
 
 	const queryParams =
 	{
@@ -138,7 +139,7 @@ const constructPaymentURL = (referenceNo, amount, name, mobile, address, pan, em
 		"returnurl": encryptData(`${process.env.BACKEND_BASE_URL}${returnUrl}`),
 		"Reference No": encryptData(String(referenceNo)),
 		"submerchantid": encryptData(process.env.ICICI_SUB_MERCHANT_ID),
-		"transaction amount": encryptData(amount),
+		"transaction amount": encryptData(amountStr),
 		"paymode": encryptData(process.env.ICICI_PAYMODE)
 	};
 
