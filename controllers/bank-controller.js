@@ -92,6 +92,10 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 			paymentType, remarks, amount, amountAfterWaiver, selectedEvent = ""
 		} = request;
 
+	// Convert amount and amountAfterWaiver to numbers
+	const numAmount = Number(amount) || 0;
+	const numAmountAfterWaiver = Number(amountAfterWaiver) || 0;
+
 	// Generate unique reference number
 	const referenceNo = generateEnhancedTimestampId();
 
@@ -104,7 +108,7 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 		{
 			memberId: effectiveMemberId,
 			icaiMembershipNo, name, email, mobile, address, pan,
-			amount, amountAfterWaiver,
+			amount: numAmount, amountAfterWaiver: numAmountAfterWaiver,
 			ckscReferenceNo: String(referenceNo),
 			paymentType,
 			paymentDescription: isOneTimePayment ? selectedEvent : "",
@@ -115,7 +119,7 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 	// In both the cases - with waiver or without waiver, the user will be paying `amountAfterWaiver` only.
 
 	// Construct and send the payment URL
-	const paymentURL = constructPaymentURL(referenceNo, amountAfterWaiver, name, mobile, address, pan, email,
+	const paymentURL = constructPaymentURL(referenceNo, numAmountAfterWaiver, name, mobile, address, pan, email,
 		isOneTimePayment ? process.env.ICICI_ONETIME_RU : process.env.ICICI_RETURN_URL);
 
 	res.json(paymentURL);
@@ -151,10 +155,12 @@ const registerOneTimeMember = asyncHandler(async (req, res) =>
 		paymentType, remarks, amount, selectedEvent
 	} = request;
 
+	// Convert amount to number
+	const numAmount = Number(amount) || 0;
 	const memberType = "non-member";
 
 	// Generate unique reference number
-	const newMember = await createNewMemberIfNeeded(true, paymentType, name, icaiMembershipNo, mobile, email, "", amount);
+	const newMember = await createNewMemberIfNeeded(true, paymentType, name, icaiMembershipNo, mobile, email, "", numAmount);
 
 	// Check if newMember was successfully created
 	if (!newMember)
@@ -168,7 +174,7 @@ const registerOneTimeMember = asyncHandler(async (req, res) =>
 	{
 		eventId: selectedEvent, // Assuming this is the ObjectId of the event
 		memberId: newMember._id, // Use _id for MongoDB ObjectId reference
-		amount: amount,
+		amount: numAmount,
 		paymentStatus: 'unpaid', // Assuming the payment has not been completed yet
 		remarks,
 		memberType
