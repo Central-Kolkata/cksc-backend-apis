@@ -504,6 +504,98 @@ const memberTransactions = asyncHandler(async (req, res) =>
 	}
 });
 
+const registerMembersToEvent = asyncHandler(async (req, res) =>
+{
+	const { eventId, memberIds, paymentStatus = 'unpaid', remarks = "" } = req.body;
+
+	// Validate input
+	if (!eventId || !memberIds || !Array.isArray(memberIds) || memberIds.length === 0)
+	{
+		return res.status(400).json({
+			success: false,
+			message: 'eventId and memberIds array are required'
+		});
+	}
+
+	try
+	{
+		// Verify event exists
+		const Event = require("../models/event-model");
+		const event = await Event.findById(eventId);
+
+		if (!event)
+		{
+			return res.status(404).json({
+				success: false,
+				message: 'Event not found'
+			});
+		}
+
+		// Create registrations for each member
+		const registrations = [];
+		const errors = [];
+
+		for (const memberId of memberIds)
+		{
+			try
+			{
+				// Check if member exists
+				const member = await Member.findById(memberId);
+
+				if (!member)
+				{
+					errors.push({ memberId, error: 'Member not found' });
+					continue;
+				}
+
+				// Check if already registered
+				const existingRegistration = await EventRegistration.findOne({
+					eventId,
+					memberId,
+					status: { $ne: 'cancelled' }
+				});
+
+				if (existingRegistration)
+				{
+					errors.push({ memberId, error: 'Member already registered for this event' });
+					continue;
+				}
+
+				// Create registration
+				const registration = await EventRegistration.create({
+					eventId,
+					memberId,
+					paymentStatus,
+					remarks,
+					status: 'confirmed',
+					memberType: member.type || 'member'
+				});
+
+				registrations.push(registration);
+			}
+			catch (error)
+			{
+				errors.push({ memberId, error: error.message });
+			}
+		}
+
+		res.status(201).json({
+			success: true,
+			message: `${registrations.length} member(s) registered successfully`,
+			registrations,
+			errors: errors.length > 0 ? errors : undefined
+		});
+	}
+	catch (error)
+	{
+		res.status(500).json({
+			success: false,
+			message: 'Error registering members to event',
+			error: error.message
+		});
+	}
+});
+
 const asdf = asyncHandler(async (req, res) =>
 {
 	res.json("asdf");
@@ -512,5 +604,5 @@ const asdf = asyncHandler(async (req, res) =>
 module.exports =
 {
 	fetchMembers, fetchActiveMembers, checkCKSCMembershipNo, checkICAIMembershipNo, createMember, createMembers, fetchPendingAmount, updateMember, updateMultipleMembers, deleteMember,
-	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers, updateEventRegistration, removeEventRegistration
+	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers, updateEventRegistration, removeEventRegistration, registerMembersToEvent
 };
