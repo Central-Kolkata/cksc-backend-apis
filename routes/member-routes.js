@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const {
-	fetchMembers, checkCKSCMembershipNo, checkICAIMembershipNo, createMember, createMembers, fetchPendingAmount,
+	fetchMembers, fetchActiveMembers, checkCKSCMembershipNo, checkICAIMembershipNo, createMember, createMembers, fetchPendingAmount,
 	updateMember, updateMultipleMembers, deleteMember, fetchRegisteredEvents, memberTransactions,
 	asdf, replaceMembers, updateEventRegistration, removeEventRegistration } = require("../controllers/member-controller");
 
 router.route(`/`).get(fetchMembers).post(createMember);
+router.route(`/active`).get(fetchActiveMembers);
 router.route(`/asdf`).get(asdf);
 router.route(`/add`).post(createMembers);
 router.route(`/checkCKSCMembershipNo/:ckscMembershipNo`).get(checkCKSCMembershipNo);

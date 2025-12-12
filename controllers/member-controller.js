@@ -15,6 +15,13 @@ const fetchMembers = asyncHandler(async (req, res) =>
 	res.status(200).json({ members });
 });
 
+const fetchActiveMembers = asyncHandler(async (req, res) =>
+{
+	const members = await Member.find({ status: 'active' });
+
+	res.status(200).json({ members });
+});
+
 const createMember = asyncHandler(async (req, res) =>
 {
 	const member = await Member.create(req.body);
@@ -504,6 +511,6 @@ const asdf = asyncHandler(async (req, res) =>
 
 module.exports =
 {
-	fetchMembers, checkCKSCMembershipNo, checkICAIMembershipNo, createMember, createMembers, fetchPendingAmount, updateMember, updateMultipleMembers, deleteMember,
+	fetchMembers, fetchActiveMembers, checkCKSCMembershipNo, checkICAIMembershipNo, createMember, createMembers, fetchPendingAmount, updateMember, updateMultipleMembers, deleteMember,
 	fetchRegisteredEvents, memberTransactions, asdf, replaceMembers, updateEventRegistration, removeEventRegistration
 };
