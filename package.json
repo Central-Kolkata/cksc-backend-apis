@@ -18,17 +18,18 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.1",
     "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
     "moment": "^2.29.4",
     "mongoose": "^6.6.4",
     "multer": "^1.4.5-lts.1",
     "ndps-nodejs": "^1.0.3",
     "nodemailer": "^6.9.13",
+    "resend": "^6.6.0",
     "twilio": "^3.83.4",
     "unirest": "^0.6.0",
     "uuid": "^9.0.0",
     "validator": "^13.11.0",
-    "wbm": "^1.1.16",
-    "jsonwebtoken": "^9.0.2"
+    "wbm": "^1.1.16"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

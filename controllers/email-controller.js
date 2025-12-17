@@ -1,5 +1,9 @@
 const nodemailer = require("nodemailer");
 const asyncHandler = require("express-async-handler");
+const { Resend } = require("resend");
+
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Function to create a transporter
 const createTransporter = (user, pass) =>
@@ -73,8 +77,46 @@ const sendEmailForAKP = asyncHandler(async (req, res) =>
 	await sendEmail(transporterAKP, "भारत का Phone", process.env.GOOGLE_EMAIL_AKP, emailObject, res);
 });
 
+// Handler for sending CKCA email via Resend
+const sendCKCAEmailResend = asyncHandler(async (req, res) =>
+{
+	const emailObject = req.body.emailObject;
+
+	try
+	{
+		console.log('Preparing to send email via Resend:', {
+			to: emailObject.email,
+			subject: emailObject.subject
+		});
+
+		const { data, error } = await resend.emails.send({
+			from: 'Central Kolkata Chartered Accountants <noreply@centralkolkata.org>',
+			to: [emailObject.email],
+			bcc: 'cksc.suvishakha@gmail.com',
+			subject: emailObject.subject,
+			html: emailObject.body,
+			text: emailObject.body.replace(/<[^>]*>/g, '') // Strip HTML for text version
+		});
+
+		if (error)
+		{
+			console.error('Resend error:', error);
+			return res.status(400).json({ error });
+		}
+
+		console.log('Resend email sent successfully:', data);
+		res.send("Success");
+	}
+	catch (error)
+	{
+		console.error('Error sending email via Resend:', error);
+		res.status(500).json({ error: error.message });
+	}
+});
+
 module.exports =
 {
 	sendCKCAEmail,
 	sendEmailForAKP,
+	sendCKCAEmailResend,
 };
