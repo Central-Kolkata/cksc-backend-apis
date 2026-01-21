@@ -63,7 +63,6 @@ app.use((req, res, next) =>
 });
 
 app.use(`/api/members`, require("./routes/member-routes"));
-// app.use(`/api/atom`, require("./routes/atom-routes"));
 app.use(`/api/icici`, require("./routes/icici-routes"));
 app.use(`/api/bank`, require("./routes/bank-routes"));
 app.use(`/api/sms`, require("./routes/sms-routes"));
