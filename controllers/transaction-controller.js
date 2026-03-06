@@ -46,7 +46,6 @@ const fetchTransactions = asyncHandler(async (req, res) =>
 						preserveNullAndEmptyArrays: false  // Ensures that the pipeline continues only if member exists
 					}
 				},
-				{ $match: { "member.status": "active" } },
 				{
 					$lookup:
 					{
@@ -80,6 +79,8 @@ const fetchTransactions = asyncHandler(async (req, res) =>
 						"member.mobile": 1,
 						"member.ckscMembershipNo": 1,
 						"member.icaiMembershipNo": 1,
+						"member.status": 1,
+						"member.type": 1,
 						"iciciPaymentRequest.paymentType": 1,
 						"iciciPaymentRequest.amount": 1,
 						"updatedAt": 1
