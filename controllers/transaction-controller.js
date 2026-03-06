@@ -11,7 +11,13 @@ const fetchTransactions = asyncHandler(async (req, res) =>
 	{
 		// Use ISO date format and handle dates as UTC
 		const start = fromDate ? new Date(fromDate) : new Date(0);
-		const end = toDate ? new Date(toDate) : new Date();
+		let end = toDate ? new Date(toDate) : new Date();
+		
+		// If toDate is provided, set it to the end of that day to include transactions made on that day
+		if (toDate) {
+			end.setHours(23, 59, 59, 999);
+		}
+
 		dateFilter =
 		{
 			createdAt: { $gte: start, $lte: end }
