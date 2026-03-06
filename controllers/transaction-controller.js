@@ -71,6 +71,7 @@ const fetchTransactions = asyncHandler(async (req, res) =>
 						iciciPaymentResponse: { $arrayElemAt: ["$iciciPaymentResponse", 0] }
 					}
 				},
+				{ $match: { "iciciPaymentResponse.responseCode": "E000" } },
 				{
 					$project:
 					{
@@ -91,7 +92,7 @@ const fetchTransactions = asyncHandler(async (req, res) =>
 		console.log("Payments found:", payments.length);
 		payments = payments.map(payment =>
 		{
-			payment.updatedAt = payment.updatedAt ? moment(payment.updatedAt).toISOString() : "";
+			payment.updatedAt = payment.updatedAt ? moment(payment.updatedAt).utcOffset("+05:30").format("DD-MMM-YY HH:mm:ss") : "";
 			return payment;
 		});
 
