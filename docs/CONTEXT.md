@@ -489,8 +489,8 @@ All API routes are prefixed with `/api` (except `/health`).
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/sendCKCAEmail` | JWT | Send email via Nodemailer (CKCA Gmail account) |
-| POST | `/sendCKCAEmailResend` | JWT | Send email via Resend API (`noreply@centralkolkata.org`) |
+| POST | `/sendCKCAEmail` | JWT | Send CKCA email via Resend first, then Brevo fallback |
+| POST | `/sendCKCAEmailResend` | JWT | Alias of CKCA email flow: Resend first, then Brevo fallback |
 | POST | `/sendEmailForAKP` | JWT | Send email via Nodemailer (AKP Gmail account) |
 
 ### 8.9 SMS (`/api/sms`)
@@ -650,8 +650,9 @@ The `fetchPendingAmount` endpoint uses a two-step priority search:
 | **MongoDB Atlas** | Database | `MONGO_URI` connection string |
 | **ICICI Bank Payment Gateway** | Online payments | Merchant ID, AES key, pay URL, return URLs |
 | **Cloudinary** | File/image hosting | Cloud name, API key, API secret |
-| **Resend** | Email delivery (primary) | `RESEND_API_KEY`, sends from `noreply@centralkolkata.org` |
-| **Gmail SMTP (Nodemailer)** | Email delivery (fallback) | App password auth, CKCA + AKP accounts |
+| **Resend** | CKCA email delivery (primary) | `RESEND_API_KEY`, sends from `noreply@centralkolkata.org` |
+| **Brevo** | CKCA email delivery (fallback) | `BREVO_API_KEY`, verified sender email/name |
+| **Gmail SMTP (Nodemailer)** | AKP email delivery | App password auth, AKP account |
 | **Twilio** | WhatsApp messaging | `TWILIO_SID`, `TWILIO_SECRET` |
 | **External SMS Provider** | SMS sending | `SMS_KEY`, `SMS_SENDER`, `SMS_BASE_URL` |
 | **Railway** | API hosting | Procfile deployment, dynamic port |
@@ -690,11 +691,12 @@ The `fetchPendingAmount` endpoint uses a two-step priority search:
 
 | Variable | Purpose |
 |----------|---------|
-| `GOOGLE_EMAIL` | CKCA Gmail address |
-| `GOOGLE_EMAIL_APP_PASSWORD` | CKCA Gmail app password |
 | `GOOGLE_EMAIL_AKP` | AKP Gmail address |
 | `GOOGLE_EMAIL_AKP_APP_PASSWORD` | AKP Gmail app password |
 | `RESEND_API_KEY` | Resend email service API key |
+| `BREVO_API_KEY` | Brevo transactional email API key |
+| `BREVO_SENDER_EMAIL` | Brevo verified sender email address for CKCA emails |
+| `BREVO_SENDER_NAME` | Optional sender display name for CKCA emails |
 
 **Cloudinary:**
 
