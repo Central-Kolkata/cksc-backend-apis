@@ -56,18 +56,15 @@ const updateMultipleMembers = asyncHandler(async (req, res) =>
 
 	const updatePromises = updates.map(async (update) =>
 	{
-		const { id, changes, deletion } = update;
+		const { id, changes } = update;
 
 		let updateFields = {};
 
-		if (changes && changes.cksc)
+		if (changes)
 		{
-			updateFields.ckscMembershipNo = changes.cksc.newValue;
-		}
-
-		if (deletion)
-		{
-			updateFields.status = 'inactive';
+			Object.keys(changes).forEach(key => {
+				updateFields[key] = changes[key].newValue;
+			});
 		}
 
 		return Member.findByIdAndUpdate(id, updateFields, { new: true });
