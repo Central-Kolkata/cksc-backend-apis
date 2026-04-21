@@ -66,6 +66,9 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 			});
 	}
 
+	const amountStr = String(amount);
+	const referenceNoStr = String(referenceNo);
+
 	await ICICIPaymentRequest.create(
 		{
 			"memberId": icaiMembershipNo,
@@ -77,13 +80,13 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 			"address": address,
 			"pan": pan,
 			"amount": amount,
-			"referenceNo": referenceNo,
+			"referenceNo": referenceNoStr,
 			"paymentType": paymentType,
 			"paymentDescription": selectedEvent,
 			"paymentRemarks": remarks
 		});
 
-	let mandatoryFields = `${referenceNo}|${process.env.ICICI_SUB_MERCHANT_ID}|${amount}|${name}|${mobile}|${address}|${pan}|${email}`;
+	let mandatoryFields = `${referenceNoStr}|${process.env.ICICI_SUB_MERCHANT_ID}|${amountStr}|${name}|${mobile}|${address}|${pan}|${email}`;
 
 	const queryParams1 =
 	{
@@ -91,9 +94,9 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 		"mandatory fields": mandatoryFields,
 		"optional fields": "",
 		"returnurl": `${process.env.BACKEND_BASE_URL}${process.env.ICICI_ONETIME_RU}`,
-		"Reference No": referenceNo,
+		"Reference No": referenceNoStr,
 		"submerchantid": process.env.ICICI_SUB_MERCHANT_ID,
-		"transaction amount": amount,
+		"transaction amount": amountStr,
 		"paymode": process.env.ICICI_PAYMODE
 	};
 
@@ -111,9 +114,9 @@ const fetchOneTimePaymentRequestURL = asyncHandler(async (req, res) =>
 		"mandatory fields": encryptData(mandatoryFields),
 		"optional fields": "",
 		"returnurl": encryptData(`${process.env.BACKEND_BASE_URL}${process.env.ICICI_ONETIME_RU}`),
-		"Reference No": encryptData(referenceNo),
+		"Reference No": encryptData(referenceNoStr),
 		"submerchantid": encryptData(process.env.ICICI_SUB_MERCHANT_ID),
-		"transaction amount": encryptData(amount),
+		"transaction amount": encryptData(amountStr),
 		"paymode": encryptData(process.env.ICICI_PAYMODE)
 	};
 
@@ -169,6 +172,9 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 		}
 	}
 
+	const amountStr = String(amount);
+	const referenceNoStr = String(referenceNo);
+
 	await ICICIPaymentRequest.create(
 		{
 			"memberId": memberId,
@@ -180,13 +186,13 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 			"address": address,
 			"pan": pan,
 			"amount": amount,
-			"referenceNo": referenceNo,
+			"referenceNo": referenceNoStr,
 			"paymentType": paymentType,
 			"paymentDescription": "",
 			"paymentRemarks": remarks
 		});
 
-	let mandatoryFields = `${referenceNo}|${process.env.ICICI_SUB_MERCHANT_ID}|${amount}|${name}|${mobile}|${address}|${pan}|${email}`;
+	let mandatoryFields = `${referenceNoStr}|${process.env.ICICI_SUB_MERCHANT_ID}|${amountStr}|${name}|${mobile}|${address}|${pan}|${email}`;
 
 	const queryParams1 =
 	{
@@ -194,9 +200,9 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 		"mandatory fields": mandatoryFields,
 		"optional fields": "",
 		"returnurl": `${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`,
-		"Reference No": referenceNo,
+		"Reference No": referenceNoStr,
 		"submerchantid": process.env.ICICI_SUB_MERCHANT_ID,
-		"transaction amount": amount,
+		"transaction amount": amountStr,
 		"paymode": process.env.ICICI_PAYMODE
 	};
 
@@ -214,9 +220,9 @@ const fetchPaymentRequestURL = asyncHandler(async (req, res) =>
 		"mandatory fields": encryptData(mandatoryFields),
 		"optional fields": "",
 		"returnurl": encryptData(`${process.env.BACKEND_BASE_URL}${process.env.ICICI_RETURN_URL}`),
-		"Reference No": encryptData(referenceNo),
+		"Reference No": encryptData(referenceNoStr),
 		"submerchantid": encryptData(process.env.ICICI_SUB_MERCHANT_ID),
-		"transaction amount": encryptData(amount),
+		"transaction amount": encryptData(amountStr),
 		"paymode": encryptData(process.env.ICICI_PAYMODE)
 	};
 

@@ -96,6 +96,18 @@ const fetchPaymentRequest = asyncHandler(async (req, res, isOneTimePayment = fal
 	const numAmount = Number(amount) || 0;
 	const numAmountAfterWaiver = Number(amountAfterWaiver) || 0;
 
+	// Validation guard for payable membership flows
+	const isPayableMembershipFlow =
+		paymentType === "MembershipTotal" ||
+		paymentType === "Existing Membership";
+
+	if (isPayableMembershipFlow && numAmount > 0 && numAmountAfterWaiver <= 0)
+	{
+		return res.status(400).json({
+			message: "Invalid payment amount. Payable amount cannot be zero when dues are pending."
+		});
+	}
+
 	// Generate unique reference number
 	const referenceNo = generateEnhancedTimestampId();
 
