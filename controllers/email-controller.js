@@ -2,6 +2,7 @@ const axios = require("axios");
 const nodemailer = require("nodemailer");
 const asyncHandler = require("express-async-handler");
 const { Resend } = require("resend");
+const EmailLog = require("../models/email-log-model");
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -67,10 +68,10 @@ const deliverEmailViaBrevo = async (emailObject) =>
 	});
 
 	console.log('Brevo email sent successfully:', response.data);
-	return response.data;
+	return { success: true, service: 'brevo', data: response.data };
 };
 
-const sendCKCAEmailWithFallback = async (emailObject) =>
+const sendCKCAEmailViaResend = async (emailObject) =>
 {
 	console.log('Preparing to send CKCA email via Resend:', {
 		to: emailObject.email,
@@ -93,7 +94,7 @@ const sendCKCAEmailWithFallback = async (emailObject) =>
 	}
 
 	console.log('Resend email sent successfully:', data);
-	return data;
+	return { success: true, service: 'resend', data };
 };
 
 // Function to send email
@@ -140,7 +141,7 @@ const handleCKCAEmailRequest = async (req, res) =>
 
 	try
 	{
-		await sendCKCAEmailWithFallback(emailObject);
+		await sendCKCAEmailViaResend(emailObject);
 		return res.send("Success");
 	}
 	catch (resendError)
@@ -224,12 +225,33 @@ const sendWelcomeEmail = asyncHandler(async (req, res) =>
 
 	try
 	{
-		await sendCKCAEmailWithFallback(emailObject);
+		let result = await sendCKCAEmailViaResend(emailObject).catch(async (err) => {
+            console.log('Resend failed for Welcome email, falling back to Brevo...');
+            return await deliverEmailViaBrevo(emailObject);
+        });
+
+        await EmailLog.create({
+            recipientEmail: member.email,
+            recipientName: member.name,
+            subject: emailObject.subject,
+            emailType: 'welcome',
+            serviceUsed: result.service,
+            status: 'sent'
+        });
 		return res.send("Success");
 	}
 	catch (error)
 	{
 		console.error('Welcome email failed:', error.message);
+        await EmailLog.create({
+            recipientEmail: member.email,
+            recipientName: member.name,
+            subject: emailObject.subject,
+            emailType: 'welcome',
+            serviceUsed: 'none',
+            status: 'failed',
+            error: error.message
+        });
 		return res.status(500).json({ error: error.message });
 	}
 });
@@ -240,4 +262,6 @@ module.exports =
 	sendEmailForAKP,
 	sendCKCAEmailResend,
 	sendWelcomeEmail,
+    deliverEmailViaBrevo,
+    sendCKCAEmailViaResend
 };

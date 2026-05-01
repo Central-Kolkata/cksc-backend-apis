@@ -1,46 +1,8 @@
 const Member = require("../models/member-model");
+const EmailLog = require("../models/email-log-model");
 const axios = require("axios");
 const moment = require("moment");
-
-const toPlainText = (body = "") => body.replace(/<[^>]*>/g, '');
-
-const deliverEmailViaBrevo = async (emailObject) =>
-{
-	if (!process.env.BREVO_API_KEY)
-	{
-		throw new Error("BREVO_API_KEY is not configured.");
-	}
-
-	const senderEmail = process.env.BREVO_SENDER_EMAIL || "noreply@centralkolkata.org";
-	const senderName = process.env.BREVO_SENDER_NAME || "Central Kolkata Chartered Accountants";
-
-	const payload = {
-		sender: {
-			name: senderName,
-			email: senderEmail,
-		},
-		to: [
-			{
-				email: emailObject.email,
-			},
-		],
-		subject: emailObject.subject,
-		htmlContent: emailObject.body,
-		textContent: toPlainText(emailObject.body),
-	};
-
-	const brevoApiUrl = "https://api.brevo.com/v3/smtp/email";
-	const response = await axios.post(brevoApiUrl, payload, {
-		headers: {
-			'accept': 'application/json',
-			'api-key': process.env.BREVO_API_KEY,
-			'content-type': 'application/json',
-		},
-		timeout: 15000,
-	});
-
-	return response.data;
-};
+const { sendCKCAEmailViaResend, deliverEmailViaBrevo } = require("../controllers/email-controller");
 
 const sendBirthdayEmail = async (member) => {
     const emailObject = {
@@ -71,10 +33,30 @@ const sendBirthdayEmail = async (member) => {
         `
     };
     try {
-        await deliverEmailViaBrevo(emailObject);
-        console.log(`Birthday greeting sent to ${member.email}`);
+        let result = await sendCKCAEmailViaResend(emailObject).catch(async (err) => {
+            return await deliverEmailViaBrevo(emailObject);
+        });
+
+        await EmailLog.create({
+            recipientEmail: member.email,
+            recipientName: member.name,
+            subject: emailObject.subject,
+            emailType: 'birthday',
+            serviceUsed: result.service,
+            status: 'sent'
+        });
+        console.log(`Birthday greeting sent and logged for ${member.email} via ${result.service}`);
     } catch (error) {
         console.error(`Failed to send birthday greeting to ${member.email}:`, error.message);
+        await EmailLog.create({
+            recipientEmail: member.email,
+            recipientName: member.name,
+            subject: emailObject.subject,
+            emailType: 'birthday',
+            serviceUsed: 'none',
+            status: 'failed',
+            error: error.message
+        });
     }
 };
 
@@ -107,10 +89,30 @@ const sendAnniversaryEmail = async (member) => {
         `
     };
     try {
-        await deliverEmailViaBrevo(emailObject);
-        console.log(`Anniversary greeting sent to ${member.email}`);
+        let result = await sendCKCAEmailViaResend(emailObject).catch(async (err) => {
+            return await deliverEmailViaBrevo(emailObject);
+        });
+
+        await EmailLog.create({
+            recipientEmail: member.email,
+            recipientName: member.name,
+            subject: emailObject.subject,
+            emailType: 'anniversary',
+            serviceUsed: result.service,
+            status: 'sent'
+        });
+        console.log(`Anniversary greeting sent and logged for ${member.email} via ${result.service}`);
     } catch (error) {
         console.error(`Failed to send anniversary greeting to ${member.email}:`, error.message);
+        await EmailLog.create({
+            recipientEmail: member.email,
+            recipientName: member.name,
+            subject: emailObject.subject,
+            emailType: 'anniversary',
+            serviceUsed: 'none',
+            status: 'failed',
+            error: error.message
+        });
     }
 };
 
