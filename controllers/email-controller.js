@@ -179,9 +179,65 @@ const sendCKCAEmailResend = asyncHandler(async (req, res) =>
 	await handleCKCAEmailRequest(req, res);
 });
 
+// Handler for sending Welcome email
+const sendWelcomeEmail = asyncHandler(async (req, res) =>
+{
+	const { member } = req.body;
+
+	const emailObject = {
+		email: member.email,
+		subject: `Welcome to Central Kolkata Chartered Accountants Association! 🤝`,
+		body: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <div style="background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); padding: 40px 20px; text-align: center; color: white;">
+                    <h1 style="margin: 0; font-size: 28px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">Welcome to the Association</h1>
+                    <p style="font-size: 16px; margin: 10px 0 0 0; opacity: 0.9;">Central Kolkata Chartered Accountants Association</p>
+                </div>
+                <div style="padding: 40px 30px; background-color: #ffffff;">
+                    <p style="font-size: 18px; color: #333; margin-bottom: 20px;">Dear <b>${member.name}</b>,</p>
+                    <p style="font-size: 16px; color: #555; line-height: 1.6;">
+                        It is our great pleasure to welcome you as a member of the <b>Central Kolkata Chartered Accountants Association</b>. 
+                    </p>
+                    <p style="font-size: 16px; color: #555; line-height: 1.6;">
+                        We are thrilled to have you join our community of professionals. As a member, you will have access to our upcoming events, professional networking opportunities, and regular updates from the association.
+                    </p>
+                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0;">
+                        <p style="margin: 0; font-weight: bold; color: #2c3e50;">Your Membership Details:</p>
+                        <p style="margin: 10px 0 0 0; color: #555;"><b>Name:</b> ${member.name}</p>
+                        <p style="margin: 5px 0 0 0; color: #555;"><b>Membership No:</b> ${member.ckscMembershipNo || member.icaiMembershipNo || 'Pending'}</p>
+                    </div>
+                    <p style="font-size: 16px; color: #555; line-height: 1.6;">
+                        We look forward to your active participation in our future activities. Should you have any questions or require assistance, please feel free to reach out to us.
+                    </p>
+                    <div style="margin: 30px 0; height: 1px; background-color: #eee;"></div>
+                    <p style="font-size: 14px; color: #888;">Warmest Regards,</p>
+                    <p style="font-size: 16px; color: #333; font-weight: bold; margin-top: 5px;">Managing Committee</p>
+                    <p style="font-size: 16px; color: #333; font-weight: bold;">Central Kolkata Chartered Accountants Association</p>
+                </div>
+                <div style="background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #999;">
+                    © ${new Date().getFullYear()} Central Kolkata Chartered Accountants Association<br/>
+                    This is an automated welcome message.
+                </div>
+            </div>
+        `
+	};
+
+	try
+	{
+		await sendCKCAEmailWithFallback(emailObject);
+		return res.send("Success");
+	}
+	catch (error)
+	{
+		console.error('Welcome email failed:', error.message);
+		return res.status(500).json({ error: error.message });
+	}
+});
+
 module.exports =
 {
 	sendCKCAEmail,
 	sendEmailForAKP,
 	sendCKCAEmailResend,
+	sendWelcomeEmail,
 };
