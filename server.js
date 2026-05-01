@@ -4,6 +4,8 @@ const { errorHandler } = require("./middlewares/error-middleware");
 const connectMongoDB = require("./config/db");
 const cors = require("cors");
 const authenticateJWT = require('./middlewares/auth-middleware');
+const cron = require("node-cron");
+const { sendGreetings } = require("./services/greeting-service");
 
 connectMongoDB();
 const port = process.env.PORT || 5001;
@@ -73,6 +75,16 @@ app.use(`/api/events`, require("./routes/event-routes"));
 app.use(`/api/emailService`, require("./routes/email-routes"));
 app.use(`/api/upload`, require("./routes/upload-routes"));
 app.use(`/api/admin-users`, require("./routes/admin-user-routes"));
+
+// Initialize Cron Job for Greetings
+// Schedule: Every day at 09:00 AM
+cron.schedule('0 9 * * *', () => {
+    console.log('Scheduled Greeting Task Started...');
+    sendGreetings();
+}, {
+    scheduled: true,
+    timezone: "Asia/Kolkata"
+});
 
 app.use(errorHandler);
 
