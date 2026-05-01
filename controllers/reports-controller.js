@@ -3,6 +3,7 @@ const ICICIPaymentRequest = require("../models/icici-payment-request");
 const ICICIPaymentResponse = require("../models/icici-payment-response");
 const Member = require("../models/member-model");
 const MemberPayment = require("../models/member-payment");
+const EmailLog = require("../models/email-log-model");
 
 const fetchAllMembers = asyncHandler(async (req, res) =>
 {
@@ -232,7 +233,34 @@ const fetchAllPaymentDetailsJSON = asyncHandler(async (req, res) =>
     res.json(allPaymentDetails);
 });
 
+const fetchEmailLogs = asyncHandler(async (req, res) =>
+{
+    const { fromDate, toDate, emailType, status } = req.query;
+    
+    let query = {};
+    
+    if (fromDate && toDate) {
+        query.createdAt = {
+            $gte: new Date(fromDate),
+            $lte: new Date(new Date(toDate).setHours(23, 59, 59, 999))
+        };
+    }
+    
+    if (emailType && emailType !== 'all') {
+        query.emailType = emailType;
+    }
+    
+    if (status && status !== 'all') {
+        query.status = status;
+    }
+
+    const logs = await EmailLog.find(query).sort({ createdAt: -1 });
+    res.json(logs);
+});
+
 module.exports =
 {
-    fetchAllMembers, fetchAllPaymentDetails
+    fetchAllMembers, 
+    fetchAllPaymentDetails,
+    fetchEmailLogs
 };
