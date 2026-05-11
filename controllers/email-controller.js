@@ -187,37 +187,68 @@ const sendWelcomeEmail = asyncHandler(async (req, res) =>
 
 	const emailObject = {
 		email: member.email,
-		subject: `Welcome to Central Kolkata Chartered Accountants Association! 🤝`,
+		subject: `Welcome to the CKCA 🤝`,
 		body: `
-            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                <div style="background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); padding: 40px 20px; text-align: center; color: white;">
-                    <h1 style="margin: 0; font-size: 28px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">Welcome to the Association</h1>
-                    <p style="font-size: 16px; margin: 10px 0 0 0; opacity: 0.9;">Central Kolkata Chartered Accountants Association</p>
+            <div style="font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid #f0f0f0;">
+                <!-- Header -->
+                <div style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); padding: 40px 20px; text-align: center;">
+                    <img src="https://res.cloudinary.com/suvishakha/image/upload/v1716440742/centralkolkata.org/logo2/ckca_mqebff.png" alt="CKCA Logo" style="max-height: 80px; margin-bottom: 20px;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Welcome to the CKCA</h1>
+                    <div style="width: 50px; height: 3px; background-color: #fbbf24; margin: 20px auto 0;"></div>
                 </div>
-                <div style="padding: 40px 30px; background-color: #ffffff;">
-                    <p style="font-size: 18px; color: #333; margin-bottom: 20px;">Dear <b>${member.name}</b>,</p>
-                    <p style="font-size: 16px; color: #555; line-height: 1.6;">
-                        It is our great pleasure to welcome you as a member of the <b>Central Kolkata Chartered Accountants Association</b>. 
-                    </p>
-                    <p style="font-size: 16px; color: #555; line-height: 1.6;">
-                        We are thrilled to have you join our community of professionals. As a member, you will have access to our upcoming events, professional networking opportunities, and regular updates from the association.
-                    </p>
-                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0;">
-                        <p style="margin: 0; font-weight: bold; color: #2c3e50;">Your Membership Details:</p>
-                        <p style="margin: 10px 0 0 0; color: #555;"><b>Name:</b> ${member.name}</p>
-                        <p style="margin: 5px 0 0 0; color: #555;"><b>Membership No:</b> ${member.ckscMembershipNo || member.icaiMembershipNo || 'Pending'}</p>
+
+                <!-- Body -->
+                <div style="padding: 40px; color: #1f2937; line-height: 1.6;">
+                    <p style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">Dear ${member.name},</p>
+                    
+                    <p style="margin-bottom: 20px;">It is our great pleasure to welcome you as a member of the <strong>Central Kolkata Chartered Accountants Association</strong>.</p>
+                    
+                    <p style="margin-bottom: 30px;">We are thrilled to have you join our community of professionals. As a member, you will have access to our upcoming events, professional networking opportunities, and regular updates from the association.</p>
+
+                    <!-- Details Card -->
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-bottom: 30px;">
+                        <h3 style="margin: 0 0 15px 0; color: #1e3a8a; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;">Your Membership Details</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px 0; color: #64748b; width: 140px;"><strong>Name:</strong></td>
+                                <td style="padding: 8px 0; color: #1e293b;">${member.name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #64748b;"><strong>Membership No:</strong></td>
+                                <td style="padding: 8px 0; color: #1e293b;">${member.ckscMembershipNo || member.icaiMembershipNo || 'Pending'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #64748b;"><strong>Mobile no.</strong></td>
+                                <td style="padding: 8px 0; color: #1e293b;">${member.mobile || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #64748b;"><strong>Mail ID-</strong></td>
+                                <td style="padding: 8px 0; color: #1e293b;">${member.email}</td>
+                            </tr>
+                        </table>
                     </div>
-                    <p style="font-size: 16px; color: #555; line-height: 1.6;">
-                        We look forward to your active participation in our future activities. Should you have any questions or require assistance, please feel free to reach out to us.
-                    </p>
-                    <div style="margin: 30px 0; height: 1px; background-color: #eee;"></div>
-                    <p style="font-size: 14px; color: #888;">Warmest Regards,</p>
-                    <p style="font-size: 16px; color: #333; font-weight: bold; margin-top: 5px;">Managing Committee</p>
-                    <p style="font-size: 16px; color: #333; font-weight: bold;">Central Kolkata Chartered Accountants Association</p>
+
+                    <!-- WhatsApp CTA -->
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <p style="margin-bottom: 15px; font-weight: 500;">Kindly join our WhatsApp Group</p>
+                        <a href="https://chat.whatsapp.com/EMIJppt0Cf2FyzaVaHjiI2" style="display: inline-block; background-color: #25D366; color: white; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);">Join WhatsApp Group</a>
+                        <p style="margin-top: 10px; font-size: 13px; color: #94a3b8;"><a href="https://chat.whatsapp.com/EMIJppt0Cf2FyzaVaHjiI2" style="color: #3b82f6;">https://chat.whatsapp.com/EMIJppt0Cf2FyzaVaHjiI2</a></p>
+                    </div>
+
+                    <p style="margin-bottom: 30px;">We look forward to your active participation in our future activities. Should you have any questions or require assistance, please feel free to reach out to us.</p>
+
+                    <div style="border-top: 1px solid #f1f5f9; padding-top: 25px;">
+                        <p style="margin: 0; color: #64748b;">Warmest Regards,</p>
+                        <p style="margin: 5px 0 0 0; font-weight: 700; color: #1e293b;">Managing Committee</p>
+                        <p style="margin: 0; font-weight: 700; color: #1e293b;">Team CKCA</p>
+                        <p style="margin: 15px 0 0 0; font-size: 13px; font-weight: 600; color: #475569;">CENTRAL KOLKATA CA CPE STUDY CIRCLE of EIRC of ICAI</p>
+                    </div>
                 </div>
-                <div style="background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #999;">
-                    © ${new Date().getFullYear()} Central Kolkata Chartered Accountants Association<br/>
-                    This is an automated welcome message.
+
+                <!-- Footer -->
+                <div style="background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #f1f5f9;">
+                    <p style="margin: 0; font-size: 14px; color: #94a3b8;">© 2026 CKCA</p>
+                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #cbd5e1;">This is an automated welcome message.</p>
                 </div>
             </div>
         `
